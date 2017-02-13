@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<robot name="kubot" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <!-- Included URDF/XACRO Files -->
+
+    <xacro:include filename="$(find kubot_description)/urdf/bh280.urdf.xacro" />
+    <!-- common stuff -->
+    <xacro:include filename="$(find kubot_description)/urdf/common.gazebo.xacro" />
+    <!-- ur5 -->
+    <xacro:include filename="$(find kubot_description)/urdf/ur5.urdf.xacro" />
+
+    <!-- arm -->
+    <xacro:ur5_robot prefix="arm_" joint_limited="false"/>
+
+    <link name="world" />
+
+    <joint name="world_joint" type="fixed">
+      <parent link="world" />
+      <child link = "arm_base_link" />
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    </joint>
+
+    <xacro:property name="M_PI" value="3.14159"/>
+    <xacro:bhand_macro name="hand" parent="arm_ee_link">
+        <origin xyz="0 0 0" rpy="${M_PI/2} 0 ${M_PI/2}"/>
+    </xacro:bhand_macro>
+
+</robot>
