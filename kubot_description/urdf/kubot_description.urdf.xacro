@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <robot name="kubot" xmlns:xacro="http://ros.org/wiki/xacro">
-
+    <xacro:property name="M_PI" value="3.14159"/>
     <!-- Included URDF/XACRO Files -->
 
     <xacro:include filename="$(find kubot_description)/urdf/bh280.urdf.xacro" />
@@ -9,28 +9,31 @@
     <xacro:include filename="$(find kubot_description)/urdf/common.gazebo.xacro" />
     <!-- ur5 -->
     <xacro:include filename="$(find kubot_description)/urdf/ur5.urdf.xacro" />
-
     <!-- arm -->
     <xacro:ur5_robot prefix="arm_" joint_limited="false"/>
+    <!-- kinect -->
+    <xacro:include filename="$(find kubot_description)/urdf/sensors/kinect.urdf.xacro"/>
 
     <link name="world" />
 
+    <!-- table -->
     <xacro:include filename="$(find kubot_description)/urdf/table.xacro" />
 	   <joint name="world_joint" type="fixed">
-		   <origin xyz="0.40488474042 0.27988474042 0.3" rpy="0 0 0" />
+		   <origin xyz="0 0 0.3" rpy="0 0 0" />
 		     <parent link="world"/>
 		     <child link="table_base"/>
     </joint>
 
 	   <joint name="table_to_arm" type="fixed">
-		   <origin xyz="0 0 0" rpy="0 0 3.14159265359" />
+		   <origin xyz="0 0 0" rpy="0 0 ${M_PI}" />
 		     <parent link="tabletop_corner"/>
 		     <child link="arm_base_link"/>
      </joint>
 
-    <xacro:property name="M_PI" value="3.14159"/>
+
     <xacro:bhand_macro name="hand" parent="arm_ee_link">
         <origin xyz="0 0 0" rpy="${M_PI/2} 0 ${M_PI/2}"/>
     </xacro:bhand_macro>
 
+    <sensor_kinect  parent="tabletop_other_corner"/>
 </robot>
