@@ -15,11 +15,18 @@
 
     <link name="world" />
 
-    <joint name="world_joint" type="fixed">
-      <parent link="world" />
-      <child link = "arm_base_link" />
-      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <xacro:include filename="$(find kubot_description)/urdf/table.xacro" />
+	   <joint name="world_joint" type="fixed">
+		   <origin xyz="0.40488474042 0.27988474042 0.3" rpy="0 0 0" />
+		     <parent link="world"/>
+		     <child link="table_base"/>
     </joint>
+
+	   <joint name="table_to_arm" type="fixed">
+		   <origin xyz="0 0 0" rpy="0 0 3.14159265359" />
+		     <parent link="tabletop_corner"/>
+		     <child link="arm_base_link"/>
+     </joint>
 
     <xacro:property name="M_PI" value="3.14159"/>
     <xacro:bhand_macro name="hand" parent="arm_ee_link">

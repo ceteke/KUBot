@@ -5,7 +5,7 @@
 
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find kubot_description)/urdf/kubot_description.urdf.xacro'"/>
 
-  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -z 0.2" respawn="false" output="screen"/>
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot" respawn="false" output="screen"/>
 
   <include file="$(find kubot_gazebo)/launch/kubot_controllers.launch"/>
   <include file="$(find kubot_gazebo)/launch/state_publishers.launch"/>
