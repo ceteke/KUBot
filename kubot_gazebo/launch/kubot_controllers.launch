@@ -7,6 +7,6 @@
 
     <!-- Gripper -->
     <rosparam file="$(find kubot_gazebo)/controller/hand.yaml" command="load" />
-    <node name="hand_controller_spawner" pkg="controller_manager" type="spawner" args="hand_controller --shutdown-timeout 0.5"/>
+    <node name="hand_controller_spawner" pkg="controller_manager" type="spawner" output="screen" args="hand_controller --shutdown-timeout 0.5"/>
 
 </launch>
