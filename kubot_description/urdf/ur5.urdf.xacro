@@ -2,7 +2,6 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
   <xacro:include filename="$(find kubot_description)/urdf/ur.transmission.xacro" />
-  <xacro:include filename="$(find kubot_description)/urdf/ur.gazebo.xacro" />
 
   <xacro:property name="pi" value="3.14159265" />
 
@@ -313,7 +312,6 @@
     </link>
 
     <xacro:ur_arm_transmission prefix="${prefix}" />
-    <xacro:ur_arm_gazebo prefix="${prefix}" />
 
     <!-- ROS base_link to UR 'Base' Coordinates transform -->
     <link name="${prefix}base"/>

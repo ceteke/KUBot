@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- Arm  -->
+    <rosparam file="$(find kubot_gazebo)/controller/arm_controller_ur5.yaml" command="load"/>
+    <node name="arm_controller_spawner" pkg="controller_manager" type="spawner" output="screen" args="arm_controller --shutdown-timeout 0.5"/>
+
+    <!-- Gripper -->
+    <rosparam file="$(find kubot_gazebo)/controller/hand.yaml" command="load" />
+    <node name="hand_controller_spawner" pkg="controller_manager" type="spawner" args="hand_controller --shutdown-timeout 0.5"/>
+
+</launch>
