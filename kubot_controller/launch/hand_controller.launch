@@ -4,14 +4,15 @@
   <rosparam file="$(find kubot_controller)/config/hand.yaml" command="load"/>
 
   <!-- load the controllers that come up when started-->
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+  <node name="hand_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
     output="screen" ns="/" args="joint_state_controller
+    arm_controller
 		hand_j11_position_controller
 		hand_j12_position_controller
 		hand_j22_position_controller
 		hand_j32_position_controller"/>
 
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
+  <node name="hand_joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
 	<!--  <param name="use_gui" value="True"/> -->
   </node>
 
