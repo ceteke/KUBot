@@ -18,7 +18,8 @@ def main():
         elif cmd == 'change_arm_joint_angles':
             args = cmd_input[1]
             angles = [float(num) for num in args.split(',')]
-            arm_manipulator.plan_jointTargetInput(angles)
+            plan = arm_manipulator.plan_jointTargetInput(angles)
+            arm_manipulator.group[0].execute(plan)
         elif cmd == 'get_arm_joint_angles':
             print arm_manipulator.get_IK(arm_manipulator.get_FK()[0].pose)
 
