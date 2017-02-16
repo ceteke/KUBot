@@ -33,7 +33,7 @@ class ArmMoveIt:
 
     self.group[0].set_pose_reference_frame(planning_frame)
 
-    self.continuous_joints = ['shoulder_pan_joint','wrist_1_joint','wrist_2_joint','wrist_3_joint']
+    self.continuous_joints = ['arm_shoulder_pan_joint','arm_wrist_1_joint','arm_wrist_2_joint','arm_wrist_3_joint']
     self.continuous_joints_list = [0,3,4,5]
 
   def get_IK(self, newPose, root = None):
