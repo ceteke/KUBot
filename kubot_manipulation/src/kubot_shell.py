@@ -2,10 +2,12 @@
 import rospy
 from arm_manipulator import ArmMoveIt
 from arm import Arm
+from hand import Hand
 
 def main():
     rospy.init_node('kubot_shell', anonymous=True)
     arm = Arm()
+    hand = Hand()
     while True:
         raw = raw_input('$')
         if len(raw) == 0:
@@ -26,6 +28,10 @@ def main():
             arm.push()
         elif cmd == 'go_initial':
             arm.go_initial()
+        elif cmd == 'close_gripper':
+            hand.close_gripper()
+        elif cmd == 'open_gripper':
+            hand.open_gripper()
 
 if __name__ == '__main__':
     try:
