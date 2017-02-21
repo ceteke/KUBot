@@ -1,17 +1,12 @@
-hand_controller:
-  type: position_controllers/JointTrajectoryController
-  joints:
-     - hand_j11_joint
-     - hand_j12_joint
-     - hand_j22_joint
-     - hand_j32_joint
-  constraints:
-      goal_time: 0.6
-      stopped_velocity_tolerance: 0.05
-      hand_j11_joint: {trajectory: 0.1, goal: 0.1}
-      hand_j12_joint: {trajectory: 0.1, goal: 0.1}
-      hand_j22_joint: {trajectory: 0.1, goal: 0.1}
-      hand_j32_joint: {trajectory: 0.1, goal: 0.1}
-  stop_trajectory_duration: 0.5
-  state_publish_rate:  25
-  action_monitor_rate: 10
+hand_j11_position_controller:
+  type: position_controllers/JointPositionController
+  joint: hand_j11_joint
+hand_j12_position_controller:
+  type: position_controllers/JointPositionController
+  joint: hand_j12_joint
+hand_j22_position_controller:
+  type: position_controllers/JointPositionController
+  joint: hand_j22_joint
+hand_j32_position_controller:
+  type: position_controllers/JointPositionController
+  joint: hand_j32_joint
