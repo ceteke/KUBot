@@ -24,7 +24,7 @@ class ObjectHandler:
 
     def spawn_sphere_on_table(self,sphere_name):
         sphere_pose = Pose()
-        sphere_pose.position.x = 1.0
-        sphere_pose.position.y = -0.4
-        sphere_pose.position.z = 1.2
+        sphere_pose.position.x = 0.0
+        sphere_pose.position.y = 0.0
+        sphere_pose.position.z = 0.0
         return self.spawn_object('basic_sphere.urdf',sphere_name,sphere_pose)

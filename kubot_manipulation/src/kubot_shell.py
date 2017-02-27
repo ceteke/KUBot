@@ -1,13 +1,16 @@
 #!/usr/bin/env python
+import roslib; roslib.load_manifest('kubot_gazebo')
 import rospy
 from arm_manipulator import ArmMoveIt
 from arm import Arm
 from hand import Hand
+from object_handler import ObjectHandler
 
 def main():
     rospy.init_node('kubot_shell', anonymous=True)
     arm = Arm()
     hand = Hand()
+    oh = ObjectHandler()
     while True:
         raw = raw_input('$')
         if len(raw) == 0:
@@ -32,6 +35,8 @@ def main():
             hand.close_gripper()
         elif cmd == 'open_gripper':
             hand.open_gripper()
+        elif cmd == 'spawn_sphere':
+            oh.spawn_sphere_on_table('sphere1')
 
 if __name__ == '__main__':
     try:
