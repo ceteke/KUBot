@@ -9,11 +9,19 @@ class Arm:
     def __init__(self):
         self.initial_pose_arr = [0.152154051453,0.191454891608,0.897687109724,
             0.517374498524,0.517348885096,0.482040788803,0.481985930601]
+        self.object_poses = {'south': [0.81725000034,0.19145,-0.00549099853312,
+            0.707106780552,0.707106781821,1.26918356229e-09,1.26918351361e-09]}
+        #south angles sould be [0.7000298097253443, -1.4999774338590477, 2.1999635583551616, -0.5001153552691662, 1.4999666894284447, 1.4999763591757844]
         self.initial_pose = utils.array_to_pose(self.initial_pose_arr)
         self.arm_planner = ArmMoveIt()
 
     def go_initial(self):
         return self.go_to_pose(self.initial_pose)
+
+    def go_next_to_object(self,way):
+        pose = self.object_poses[way]
+        plan = self.arm_planner.plan_poseTargetInput(utils.array_to_pose(pose))
+        self.arm_planner.group[0].execute(plan)
 
     def push(self):
         start_pose = self.get_current_pose()

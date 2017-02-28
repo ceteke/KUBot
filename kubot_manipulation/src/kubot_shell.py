@@ -37,6 +37,9 @@ def main():
             hand.open_gripper()
         elif cmd == 'spawn_sphere':
             oh.spawn_sphere_on_table('sphere1')
+        elif cmd == 'go_next_to_object':
+            way = cmd_input[1]
+            arm.go_next_to_object(way)
 
 if __name__ == '__main__':
     try:
