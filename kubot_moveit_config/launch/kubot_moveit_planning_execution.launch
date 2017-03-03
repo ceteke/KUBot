@@ -3,7 +3,13 @@
   <remap from="/follow_joint_trajectory" to="/arm_controller/follow_joint_trajectory"/>
 
   <!-- Launch moveit -->
+
+  <group ns="move_group">
+    <rosparam command="load" file="$(find kubot_moveit_config)/config/kinematics.yaml"/>
+  </group>
+
   <include file="$(find kubot_moveit_config)/launch/move_group.launch">
     <arg name="fake_execution" value="false"/>
+    <arg name="debug" value="false"/>
   </include>
 </launch>
