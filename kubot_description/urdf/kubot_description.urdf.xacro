@@ -4,18 +4,7 @@
     <xacro:property name="M_PI" value="3.14159"/>
     <!-- Included URDF/XACRO Files -->
 
-    <xacro:include filename="$(find kubot_description)/urdf/bh280.urdf.xacro" />
-    <!-- common stuff -->
-    <xacro:include filename="$(find kubot_description)/urdf/common.gazebo.xacro" />
-    <!-- ur5 -->
-    <xacro:include filename="$(find kubot_description)/urdf/ur5.urdf.xacro" />
-    <!-- arm -->
-    <xacro:ur5_robot prefix="arm_" joint_limited="false"/>
-    <!-- kinect -->
-    <xacro:include filename="$(find kubot_description)/urdf/sensors/kinect.urdf.xacro"/>
-
     <link name="world" />
-
     <!-- table -->
     <xacro:include filename="$(find kubot_description)/urdf/table.xacro" />
 	   <joint name="world_joint" type="fixed">
@@ -23,6 +12,17 @@
 		     <parent link="world"/>
 		     <child link="table_base"/>
     </joint>
+
+    <!-- common stuff -->
+    <xacro:include filename="$(find kubot_description)/urdf/common.gazebo.xacro" />
+    <!-- ur5 -->
+    <xacro:include filename="$(find kubot_description)/urdf/ur5.urdf.xacro" />
+    <!-- arm -->
+    <xacro:ur5_robot prefix="arm_" joint_limited="false"/>
+    <!-- gripper -->
+    <xacro:include filename="$(find kubot_description)/urdf/bh280.urdf.xacro" />
+    <!-- kinect -->
+    <xacro:include filename="$(find kubot_description)/urdf/sensors/kinect.urdf.xacro"/>
 
 	   <joint name="table_to_arm" type="fixed">
 		   <origin xyz="0 0 0" rpy="0 0 ${M_PI}" />

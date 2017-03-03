@@ -25,6 +25,10 @@ def main():
             args = cmd_input[1]
             angles = [float(num) for num in args.split(',')]
             arm.change_joint_angles(angles)
+        elif cmd == 'ang_cmd':
+            args = cmd_input[1]
+            angles = [float(num) for num in args.split(',')]
+            arm.ang_cmd(angles)
         elif cmd == 'get_arm_joint_angles':
             print arm.get_joint_state()
         elif cmd == 'push':
