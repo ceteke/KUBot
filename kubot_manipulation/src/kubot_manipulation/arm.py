@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import roslib
 import utils
 import rospy
@@ -13,11 +14,12 @@ class Arm:
     def __init__(self):
         self.initial_pose_arr = [0.152154051453,0.191454891608,0.897687109724,
             0.517374498524,0.517348885096,0.482040788803,0.481985930601]
-        self.object_poses = {'south': [0.225551892984,0.340317621398,0.151336879897,
+        self.object_poses = {'1': [0.225551892984,0.340317621398,0.151336879897,
             -0.695678673187,-0.209043631254,0.324403767098,0.605882942323]}
-        self.dumb_pose_arr = [0.81725000034,0.19145,-0.00549099853312,
-            0.707106780552,0.707106781821,1.26918356229e-09,1.26918351361e-09]
-        self.dumb_pose = utils.array_to_pose(self.dumb_pose_arr)
+        #self.dumb_pose_arr = [0.81725000034,0.19145,-0.00549099853312,
+        #    0.707106780552,0.707106781821,1.26918356229e-09,1.26918351361e-09]
+        #self.dumb_pose = utils.array_to_pose(self.dumb_pose_arr)
+
         self.root = 'arm_base_link'
         #south angles sould be [0.7000298097253443,-1.4999774338590477,2.1999635583551616,-0.5001153552691662,1.4999666894284447,1.4999763591757844]
         self.initial_pose = utils.array_to_pose(self.initial_pose_arr)
@@ -31,10 +33,6 @@ class Arm:
         self.group = moveit_commander.MoveGroupCommander("arm")
         self.group.set_pose_reference_frame(self.root)
 
-        for i in range(10):
-            print self.robot.get_current_state()
-            rospy.sleep(1)
-
     def go_initial(self):
         return self.go_to_pose(self.initial_pose)
 
@@ -44,9 +42,9 @@ class Arm:
 
     def push(self):
         start_pose = self.get_current_pose()
-        if utils.are_poses_equal(start_pose, self.dumb_pose):
-            rospy.loginfo("Wrong calculated FK, try again")
-            return
+        #if utils.are_poses_equal(start_pose, self.dumb_pose):
+            #rospy.loginfo("Wrong calculated FK, try again")
+            #return
         object_pushed_pose = deepcopy(start_pose)
         object_pushed_pose.position.x += 0.1
         object_pushed_pose.position.y += 0.1

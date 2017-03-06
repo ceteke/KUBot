@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 import roslib; roslib.load_manifest('kubot_gazebo')
 import rospy
-from arm_manipulator import ArmMoveIt
 from arm import Arm
 from hand import Hand
-from object_handler import ObjectHandler
+from kubot_gazebo.object_handler import ObjectHandler
 
 def main():
     rospy.init_node('kubot_shell', anonymous=True)
