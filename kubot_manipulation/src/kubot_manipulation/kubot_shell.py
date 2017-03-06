@@ -3,12 +3,14 @@ import roslib; roslib.load_manifest('kubot_gazebo')
 import rospy
 from arm import Arm
 from hand import Hand
+from eye import Eye
 from kubot_gazebo.object_handler import ObjectHandler
 
 def main():
     rospy.init_node('kubot_shell', anonymous=True)
     arm = Arm()
     hand = Hand()
+    eye = Eye()
     oh = ObjectHandler()
     while True:
         raw = raw_input('$')
@@ -40,9 +42,13 @@ def main():
             hand.open_gripper()
         elif cmd == 'spawn_sphere':
             oh.spawn_sphere_on_table('sphere1')
+        elif cmd == 'spawn_box':
+            oh.spawn_box_on_table('box1')
         elif cmd == 'go_next_to_object':
             way = cmd_input[1]
             arm.go_next_to_object(way)
+        elif cmd == 'save_pcd':
+            eye.save_pcd()
 
 if __name__ == '__main__':
     try:

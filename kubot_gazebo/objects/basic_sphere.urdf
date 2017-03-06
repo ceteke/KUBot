@@ -21,7 +21,7 @@
   <gazebo reference="sphere_link">
     <mu1>10</mu1>
     <mu2>10</mu2>
-    <material>Gazebo/Blue</material>
+    <material>Gazebo/Red</material>
     <turnGravityOff>false</turnGravityOff>
 </gazebo>
 </robot>

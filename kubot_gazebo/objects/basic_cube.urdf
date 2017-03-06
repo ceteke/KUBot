@@ -1,9 +1,9 @@
 <robot name="basic_box">
-<link name="base_link">
+<link name="box_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size="0.15 0.12 0.15"/>
+        <box size="0.15 0.15 0.15"/>
       </geometry>
     </visual>
     <collision>
@@ -18,10 +18,10 @@
       <inertia ixx="0.000037" ixy="0.0" ixz="0.0" iyy="0.000037" iyz="0.0" izz="0.000037"/>
     </inertial>
   </link>
-  <gazebo reference="sphere_link">
+  <gazebo reference="box_link">
     <mu1>10</mu1>
     <mu2>10</mu2>
-    <material>Gazebo/Blue</material>
+    <material>Gazebo/Red</material>
     <turnGravityOff>false</turnGravityOff>
   </gazebo>
 </robot>
