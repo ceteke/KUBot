@@ -11,21 +11,18 @@ def main():
     object_handler = ObjectHandler()
     gazebo_interface = GazeboInterface()
 
-    robot.arm.go_next_to_object('1')
-    object_handler.spawn_sphere_on_table('sphere1')
-    robot.eye.save_pcd()
-    robot.arm.push()
-    rospy.sleep(8)
-    robot.eye.save_pcd()
-    gazebo_interface.delete_object('sphere1')
+    while True:
+        picked_object = object_handler.pick_random_object()
+        rospy.loginfo('Picked object: ' + picked_object[1].name)
+        robot.arm.go_next_to_object(picked_object[0])
+        picked_object[1].place_on_table()
+        robot.eye.save_pcd()
+        robot.arm.push()
+        rospy.sleep(8)
+        robot.eye.save_pcd()
+        gazebo_interface.delete_object(picked_object[1].name)
+        rospy.sleep(0.5)
 
-    robot.arm.go_next_to_object('1')
-    object_handler.spawn_box_on_table('box1')
-    robot.eye.save_pcd()
-    robot.arm.push()
-    rospy.sleep(8)
-    robot.eye.save_pcd()
-    gazebo_interface.delete_object('box1')
 
 if __name__ == '__main__':
     try:
