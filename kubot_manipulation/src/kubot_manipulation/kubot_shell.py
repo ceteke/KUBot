@@ -10,7 +10,7 @@ def main():
     rospy.init_node('kubot_shell', anonymous=True)
     arm = Arm()
     hand = Hand()
-    eye = Eye()
+    eye = Eye(-1)
     oh = ObjectHandler()
     while True:
         raw = raw_input('$')
