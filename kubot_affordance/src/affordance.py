@@ -11,16 +11,18 @@ def main():
     object_handler = ObjectHandler()
     gazebo_interface = GazeboInterface()
 
+    iteration_num = 0
     while True:
+        iteration_num += 1
         picked_object = object_handler.pick_random_object()
-        rospy.loginfo('Picked object: ' + picked_object[1].name)
-        robot.arm.go_next_to_object(picked_object[0])
-        picked_object[1].place_on_table()
-        robot.eye.save_pcd()
+        rospy.loginfo('Picked object: ' + picked_object.name)
+        robot.arm.go_next_to_object(picked_object.pose_num)
+        picked_object.place_on_table()
+        robot.eye.save_pcd(picked_object.name, iteration_num, 'before')
         robot.arm.push()
         rospy.sleep(3)
-        robot.eye.save_pcd()
-        gazebo_interface.delete_object(picked_object[1].name)
+        robot.eye.save_pcd(picked_object.name, iteration_num, 'after')
+        gazebo_interface.delete_object(picked_object.name)
         rospy.sleep(0.5)
 
 

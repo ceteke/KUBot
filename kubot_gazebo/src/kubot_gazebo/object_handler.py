@@ -36,4 +36,4 @@ class ObjectHandler:
     def pick_random_object(self):
         i = randint(0,len(self.objects)-1)
         obj = self.objects[i]
-        return obj.pose_num, obj
+        return obj

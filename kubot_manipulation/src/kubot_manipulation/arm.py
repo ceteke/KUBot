@@ -107,6 +107,9 @@ class Arm:
         self.group.execute(plan)
         self.group.clear_pose_targets()
 
+    def did_planned(self,plan):
+        return plan.multi_dof_joint_trajectory.points > 0
+
     def go_to_pose_cartesian(self,waypoints):
         (plan, fraction) = self.group.compute_cartesian_path(waypoints, 0.01, 0.0, False)
         rospy.loginfo("Path computed successfully with %f fraction. Moving the arm." % fraction)
