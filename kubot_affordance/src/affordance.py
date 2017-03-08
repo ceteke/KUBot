@@ -18,7 +18,7 @@ def main():
         picked_object[1].place_on_table()
         robot.eye.save_pcd()
         robot.arm.push()
-        rospy.sleep(8)
+        rospy.sleep(3)
         robot.eye.save_pcd()
         gazebo_interface.delete_object(picked_object[1].name)
         rospy.sleep(0.5)

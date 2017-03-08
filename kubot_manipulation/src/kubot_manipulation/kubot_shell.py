@@ -40,11 +40,17 @@ def main():
             hand.close_gripper()
         elif cmd == 'open_gripper':
             hand.open_gripper()
-        elif cmd == 'spawn_sphere':
+        elif cmd == 'spawn_sphere1':
             oh.sphere1.place_on_table()
+        elif cmd == 'spawn_sphere2':
+            oh.sphere2.place_on_table()
+        elif cmd == 'spawn_box1':
+            oh.box1.place_on_table()
+        elif cmd == 'spawn_box2':
+            oh.box2.place_on_table()
         elif cmd == 'go_next_to_object':
             way = cmd_input[1]
-            arm.go_next_to_object(way)
+            arm.go_next_to_object(int(way))
         elif cmd == 'save_pcd':
             eye.save_pcd()
 

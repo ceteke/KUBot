@@ -22,10 +22,10 @@
      Note: REP needs to be updated with the information below
      (currently in development and awaiting feedback)
    -->
-	<xacro:property name="cam_px" value="0" />
-  <xacro:property name="cam_py" value="0" />
+	<xacro:property name="cam_px" value="-0.1" />
+  <xacro:property name="cam_py" value="-0.1" />
 	<xacro:property name="cam_pz" value="0.5" />
 	<xacro:property name="cam_or" value="0" />
 	<xacro:property name="cam_op" value="${M_PI/4}" />
-	<xacro:property name="cam_oy" value="${M_PI/2}" />
+	<xacro:property name="cam_oy" value="${2.2*M_PI/5}" />
 </robot>

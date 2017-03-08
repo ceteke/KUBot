@@ -3,19 +3,19 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size="0.15 0.15 0.15"/>
+        <box size="0.1 0.1 0.1"/>
       </geometry>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size="0.15 0.15 0.15"/>
+        <box size="0.1 0.1 0.1"/>
       </geometry>
     </collision>
     <inertial>
       <origin xyz="0 0 0" />
       <mass value="0.01"/>
-      <inertia ixx="0.000037" ixy="0.0" ixz="0.0" iyy="0.000037" iyz="0.0" izz="0.000037"/>
+      <inertia ixx="0.00001667" ixy="0.0" ixz="0.0" iyy="0.00001667" iyz="0.0" izz="0.00001667"/>
     </inertial>
   </link>
   <gazebo reference="box_link">
