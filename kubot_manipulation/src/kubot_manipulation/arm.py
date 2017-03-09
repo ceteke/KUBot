@@ -29,6 +29,7 @@ class Arm:
 
         self.robot = moveit_commander.RobotCommander()
         self.group = moveit_commander.MoveGroupCommander("arm")
+        self.group.set_planner_id("RRTConnectkConfigDefault")
         self.group.set_pose_reference_frame(self.root)
 
     def go_next_to_object(self,way):
