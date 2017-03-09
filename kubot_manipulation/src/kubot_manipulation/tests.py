@@ -2,14 +2,15 @@
 import rospy
 from arm import Arm
 import rosbag
+from utils import pc_features_to_array
 
 def main():
 
     rospy.init_node('testing_stuff', anonymous=True)
 
-    bag = rosbag.Bag('/home/cem/ros_data/features/14_1_box2_before.bag')
+    bag = rosbag.Bag('/media/cem/ROSDATA/ros_data/features/bag/35_1_sphere1_after.bag')
     for topic, msg, t in bag.read_messages(topics=['/baris/features']):
-        print msg
+        print len(pc_features_to_array(msg))
     bag.close()
 
 if __name__ == '__main__':

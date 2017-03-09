@@ -18,10 +18,10 @@ def main():
         rospy.loginfo('Picked object: ' + picked_object.name)
         robot.arm.go_next_to_object(picked_object.pose_num)
         picked_object.place_on_table()
-        robot.eye.save_data(picked_object.name, iteration_num, 'before')
+        robot.eye.save_data(picked_object.name, iteration_num, 0)
         robot.arm.push()
         rospy.sleep(3)
-        robot.eye.save_data(picked_object.name, iteration_num, 'after')
+        robot.eye.save_data(picked_object.name, iteration_num, 1)
         gazebo_interface.delete_object(picked_object.name)
         rospy.sleep(0.5)
 
