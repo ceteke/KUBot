@@ -40,6 +40,7 @@ class Eye:
 
         with open(csv_path, "wb") as f:
             writer = csv.writer(f)
+            writer.writerow(csv_array)
 
     def generate_file_name(self, obj_name, iteration_num, status, type):
         file_name = '%d_%d_%s_%d' % (self.run_id, iteration_num, obj_name, status)
