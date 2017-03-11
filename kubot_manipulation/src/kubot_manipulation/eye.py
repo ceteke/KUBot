@@ -6,6 +6,7 @@ import rosbag
 from pc_segmentation.msg import PcFeatures
 from utils import pc_features_to_array
 import csv
+import os
 
 class Eye:
     def __init__(self, run_id):
@@ -28,7 +29,7 @@ class Eye:
 
     def save_features(self,obj_name,iteration_num,status):
         bag_path = self.features_base_path+'bag/'+self.generate_file_name(obj_name,iteration_num,status,1)
-        csv_path = self.features_base_path+'csv/'+self.generate_file_name(obj_name,iteration_num,status,2)
+        csv_directory = self.features_base_path+'csv/'+self.generate_file_name(obj_name,iteration_num,status,2)
         msg = rospy.wait_for_message(self.features_topic, PcFeatures)
         try:
             bag = rosbag.Bag(bag_path, 'w')
@@ -38,15 +39,21 @@ class Eye:
 
         csv_array = pc_features_to_array(msg)
 
+        if not os.path.exists(csv_directory):
+            os.makedirs(csv_directory)
+
+        csv_path = csv_directory + str(status) + '.csv'
+
         with open(csv_path, "wb") as f:
             writer = csv.writer(f)
             writer.writerow(csv_array)
 
     def generate_file_name(self, obj_name, iteration_num, status, type):
         file_name = '%d_%d_%s_%d' % (self.run_id, iteration_num, obj_name, status)
+        folder_name = '%d_%d_%s/' % (self.run_id, iteration_num, obj_name)
         if type == 0:
             return file_name + '.pcd'
         elif type == 1:
             return file_name + '.bag'
         elif type == 2:
-            return file_name + '.csv'
+            return folder_name
