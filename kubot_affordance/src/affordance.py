@@ -16,7 +16,9 @@ def main():
         iteration_num += 1
         picked_object = object_handler.pick_random_object()
         rospy.loginfo('Picked object: ' + picked_object.name)
-        robot.arm.go_next_to_object(picked_object.pose_num)
+        if robot.arm.go_next_to_object(picked_object.pose_num) == -1:
+            rospy.loginfo("Faild to go next to %s passing..." %(picked_object.name))
+            continue
         picked_object.place_on_table()
         robot.eye.save_data(picked_object.name, iteration_num, 0)
         robot.arm.push()

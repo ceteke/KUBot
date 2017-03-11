@@ -34,7 +34,7 @@ class Arm:
 
     def go_next_to_object(self,way):
         pose = self.object_poses[way]
-        self.go_to_pose(utils.array_to_pose(pose))
+        return self.go_to_pose(utils.array_to_pose(pose))
 
     def push(self):
         start_pose = self.get_current_pose()
@@ -105,8 +105,11 @@ class Arm:
     def go_to_pose(self,pose):
         self.group.set_pose_target(pose)
         plan = self.group.plan()
+        if len(plan.joint_trajectory.points) == 0:
+            return -1
         self.group.execute(plan)
         self.group.clear_pose_targets()
+        return 1
 
     def did_planned(self,plan):
         return plan.multi_dof_joint_trajectory.points > 0

@@ -25,7 +25,7 @@ class Eye:
 
     def save_pcd(self,obj_name,iteration_num,status):
         msg = rospy.wait_for_message(self.pcd_topic, PointCloud2)
-        python_pcd.write_pcd(self.pcd_base_path+self.generate_file_name(obj_name,iteration_num,status,0), msg)
+        #python_pcd.write_pcd(self.pcd_base_path+self.generate_file_name(obj_name,iteration_num,status,0), msg)
 
     def save_features(self,obj_name,iteration_num,status):
         bag_path = self.features_base_path+'bag/'+self.generate_file_name(obj_name,iteration_num,status,1)
