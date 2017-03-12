@@ -7,19 +7,10 @@ import moveit_msgs.srv
 import moveit_commander
 import std_msgs.msg
 import geometry_msgs.msg
-from copy import deepcopy
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 class Arm:
     def __init__(self):
-        self.object_poses = \
-            {1: [0.122082807535,0.253172402032,0.0547882234144,
-                -0.675679130692,-0.282736229211,0.24811287633,0.634001528104],
-            #0.7,-1.5,2.7,5.0599,-4.7834,1.4994
-            2:[-0.283016464947,0.457409320807,0.0585147204124,
-                -0.636984559527,-0.249563909878,0.245820513626,0.686688285098]}
-            #2.0714,-0.9666,1.7952,-0.9666,2.9249,1.5
-
         self.root = 'arm_base_link'
 
         self.pub_ang_cmd = rospy.Publisher('/arm_controller/command', JointTrajectory, queue_size=10, latch=True)
@@ -31,20 +22,6 @@ class Arm:
         self.group = moveit_commander.MoveGroupCommander("arm")
         self.group.set_planner_id("RRTConnectkConfigDefault")
         self.group.set_pose_reference_frame(self.root)
-
-    def go_next_to_object(self,way):
-        pose = self.object_poses[way]
-        return self.go_to_pose(utils.array_to_pose(pose))
-
-    def push(self):
-        start_pose = self.get_current_pose()
-        #if utils.are_poses_equal(start_pose, self.dumb_pose):
-            #rospy.loginfo("Wrong calculated FK, try again")
-            #return
-        object_pushed_pose = deepcopy(start_pose)
-        object_pushed_pose.position.x += 0.1
-        object_pushed_pose.position.y += 0.1
-        self.go_to_pose_cartesian([object_pushed_pose])
 
     def get_current_pose(self):
         return self.get_FK()[0].pose
@@ -111,17 +88,10 @@ class Arm:
         self.group.clear_pose_targets()
         return 1
 
-    def did_planned(self,plan):
-        return plan.multi_dof_joint_trajectory.points > 0
-
     def go_to_pose_cartesian(self,waypoints):
         (plan, fraction) = self.group.compute_cartesian_path(waypoints, 0.01, 0.0, False)
         rospy.loginfo("Path computed successfully with %f fraction. Moving the arm." % fraction)
         self.group.execute(plan)
-
-    def go_random(self):
-        waypoints = [[utils.random_joint_angle() for i in range(6)] for j in range(3)]
-        return self.change_joint_angles(waypoints)
 
     def ang_cmd(self, angles):
         trajectory = JointTrajectory()
