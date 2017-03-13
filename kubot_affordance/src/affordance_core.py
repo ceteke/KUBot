@@ -59,6 +59,10 @@ class AffordanceCore:
         bag_path = self.features_base_path+'bag/'+self.generate_file_name(obj_name,action_name,iteration_num,status,1)
         csv_directory = self.features_base_path+'csv/'+self.generate_file_name(obj_name,action_name,iteration_num,status,2)
         msg = rospy.wait_for_message(self.features_topic, PcFeatures)
+        while msg.hue != 0.0:
+            print msg.hue
+            msg = rospy.wait_for_message(self.features_topic, PcFeatures)
+        print msg.hue
         try:
             bag = rosbag.Bag(bag_path, 'w')
             bag.write(self.features_topic,msg)
@@ -66,7 +70,6 @@ class AffordanceCore:
             bag.close()
 
         csv_array = pc_features_to_array(msg)
-
         if not os.path.exists(csv_directory):
             os.makedirs(csv_directory)
 
