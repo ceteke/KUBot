@@ -19,16 +19,16 @@ def main():
 
         action = affordance_core.get_random_action()
         picked_object = object_handler.pick_random_object()
-        rospy.loginfo('Picked object: ' + picked_object.name)
+        rospy.loginfo('Picked object: %s in pose %d' %(picked_object.name, picked_object.pose_num))
         if action.prepare(affordance_core.get_action_initial_point(action,picked_object)) == -1:
-            rospy.loginfo("Faild to go next to %s passing..." %(picked_object.name))
+            rospy.loginfo("Faild to go next to %s in pose %d passing..." %(picked_object.name, picked_object.pose_num))
             continue
         picked_object.place_on_table()
-        affordance_core.save_data(picked_object.name, action.name, iteration_num, 0)
+        affordance_core.save_data(picked_object, action, iteration_num, 0)
         rospy.loginfo("Performing action: %s"%(action.name))
         action.execute()
         rospy.sleep(3)
-        affordance_core.save_data(picked_object.name, action.name, iteration_num, 1)
+        affordance_core.save_data(picked_object, action, iteration_num, 1)
         gazebo_interface.delete_object(picked_object.name)
         rospy.sleep(0.5)
 

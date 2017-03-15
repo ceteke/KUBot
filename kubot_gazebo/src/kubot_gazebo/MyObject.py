@@ -17,11 +17,11 @@ class MyObject(object):
                                             self.name, self.pose)
 
 class Sphere(MyObject):
-    def __init__(self,name,pose,pose_num):
-        MyObject.__init__(self,name,pose,pose_num)
+    def __init__(self,pose,pose_num):
+        MyObject.__init__(self,'sphere',pose,pose_num)
         self.urdf_file = 'basic_sphere.urdf'
 
 class Box(MyObject):
-    def __init__(self,name,pose,pose_num):
-        MyObject.__init__(self,name,pose,pose_num)
+    def __init__(self,pose,pose_num):
+        MyObject.__init__(self,'box',pose,pose_num)
         self.urdf_file = 'basic_cube.urdf'
