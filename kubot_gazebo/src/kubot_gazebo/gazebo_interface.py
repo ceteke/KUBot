@@ -41,8 +41,8 @@ class GazeboInterface:
                 return False
         except rospy.ServiceException, e:
             rospy.logerr("Service called failed: %s"%e)
-            return -1
-        return 1
+            return False
+        return True
 
     def spawn_object(self,file_name, object_name, desired_pose):
         rospy.wait_for_service(self.spawn_object_service)

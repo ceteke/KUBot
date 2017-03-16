@@ -23,13 +23,23 @@ def main():
         if action.prepare(affordance_core.get_action_initial_point(action,picked_object)) == -1:
             rospy.loginfo("Faild to go next to %s in pose %d passing..." %(picked_object.name, picked_object.pose_num))
             continue
-        picked_object.place_on_table()
+
+        is_placed = picked_object.place_on_table()
+        if not is_placed:
+            rospy.loginfo("Faild to spawn %s in pose %d. Trying deletion and respawning..." %(picked_object.name, picked_object.pose_num))
+            gazebo_interface.delete_object(picked_object.name)
+            picked_object.place_on_table()
+
         affordance_core.save_data(picked_object, action, iteration_num, 0)
         rospy.loginfo("Performing action: %s"%(action.name))
         action.execute()
-        rospy.sleep(3)
+        rospy.sleep(5)
         affordance_core.save_data(picked_object, action, iteration_num, 1)
-        gazebo_interface.delete_object(picked_object.name)
+        rospy.sleep(0.5)
+        is_deleted = gazebo_interface.delete_object(picked_object.name)
+        while not is_deleted:
+            rospy.loginfo("Deleting %s in pose %d failed. Trying again.." % (picked_object.name, picked_object.pose_num))
+            is_deleted = gazebo_interface.delete_object(picked_object.name)
         rospy.sleep(0.5)
 
 

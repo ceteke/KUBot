@@ -81,6 +81,7 @@ class AffordanceCore:
         with open(csv_path, "wb") as f:
             writer = csv.writer(f)
             writer.writerow(csv_array)
+            rospy.loginfo("Saved features to: %s" % (csv_path))
 
     def generate_file_name(self, obj, action,iteration_num, status, type):
         file_name = '%d_%d_%s_%s_%d' % (self.run_id, iteration_num, obj.name, action.name,status)

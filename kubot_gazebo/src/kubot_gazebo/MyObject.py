@@ -13,7 +13,7 @@ class MyObject(object):
         self.urdf_file = ''
 
     def place_on_table(self):
-        self.gazebo_interface.spawn_object(self.object_path+self.urdf_file,
+        return self.gazebo_interface.spawn_object(self.object_path+self.urdf_file,
                                             self.name, self.pose)
 
 class Sphere(MyObject):
