@@ -28,7 +28,7 @@ class AffordanceCore:
                 #2.0714,-0.9666,1.7952,-0.9666,2.9249,1.5
             }
 
-        self.actions = [Push('push', self.robot)]
+        self.actions = [Push(self.robot)]
 
         self.pcd_topic = '/camera/points'
         self.pcd_base_path = '/media/cem/ROSDATA/ros_data/pcd/'
@@ -85,7 +85,7 @@ class AffordanceCore:
 
     def generate_file_name(self, obj, action,iteration_num, status, type):
         file_name = '%d_%d_%s_%s_%d' % (self.run_id, iteration_num, obj.name, action.name,status)
-        folder_name = '%d_%d_%s_%d_%s/' % (self.run_id, iteration_num, obj.name,obj.pose_num,action.name)
+        folder_name = '%d_%d_%s_%s/' % (self.run_id, iteration_num, obj.id,action.name)
         if type == 0:
             return file_name + '.pcd'
         elif type == 1:

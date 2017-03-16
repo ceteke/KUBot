@@ -31,6 +31,7 @@ class GazeboInterface:
 
     def delete_object(self,object_name):
         rospy.wait_for_service(self.delete_object_service)
+        rospy.loginfo("Deleting %s" % (object_name))
         try:
             dobj = rospy.ServiceProxy(self.delete_object_service, DeleteModel)
             dobjReq = DeleteModelRequest()
@@ -74,8 +75,8 @@ class GazeboInterface:
             spResp = sp(spReq)
             if not spResp.success:
                 rospy.logerr('Failed to set object pose. %s'%spResp.status_message)
-                return -1
+                return False
         except rospy.ServiceException, e:
             rospy.logerr("Service called failed: %s"%e)
-            return -1
-        return 1
+            return True
+        return True

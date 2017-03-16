@@ -9,8 +9,8 @@ class MyAction(object):
 
 class Push(MyAction):
 
-    def __init__(self,name,robot):
-        MyAction.__init__(self,name,robot)
+    def __init__(self,robot):
+        MyAction.__init__(self,'push',robot)
 
     def prepare(self,pose_arr):
         return self.robot.arm.go_to_pose(array_to_pose(pose_arr))

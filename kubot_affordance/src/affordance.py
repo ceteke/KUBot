@@ -13,10 +13,8 @@ def main():
     gazebo_interface = GazeboInterface()
     affordance_core = AffordanceCore()
 
-    iteration_num = 0
+    iteration_num = 1
     while True:
-        iteration_num += 1
-
         action = affordance_core.get_random_action()
         picked_object = object_handler.pick_random_object()
         rospy.loginfo('Picked object: %s in pose %d' %(picked_object.name, picked_object.pose_num))
@@ -24,24 +22,16 @@ def main():
             rospy.loginfo("Faild to go next to %s in pose %d passing..." %(picked_object.name, picked_object.pose_num))
             continue
 
-        is_placed = picked_object.place_on_table()
-        if not is_placed:
-            rospy.loginfo("Faild to spawn %s in pose %d. Trying deletion and respawning..." %(picked_object.name, picked_object.pose_num))
-            gazebo_interface.delete_object(picked_object.name)
-            picked_object.place_on_table()
-
+        picked_object.place_on_table()
         affordance_core.save_data(picked_object, action, iteration_num, 0)
         rospy.loginfo("Performing action: %s"%(action.name))
         action.execute()
         rospy.sleep(5)
         affordance_core.save_data(picked_object, action, iteration_num, 1)
         rospy.sleep(0.5)
-        is_deleted = gazebo_interface.delete_object(picked_object.name)
-        while not is_deleted:
-            rospy.loginfo("Deleting %s in pose %d failed. Trying again.." % (picked_object.name, picked_object.pose_num))
-            is_deleted = gazebo_interface.delete_object(picked_object.name)
+        picked_object.remove()
         rospy.sleep(0.5)
-
+        iteration_num += 1
 
 if __name__ == '__main__':
     try:
