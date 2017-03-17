@@ -8,7 +8,7 @@ import python_pcd
 import datetime
 import rosbag
 from pc_segmentation.msg import PcFeatures
-from kubot_manipulation.utils import pc_features_to_array
+from utils import pc_features_to_array
 import csv
 import os
 
@@ -72,16 +72,22 @@ class AffordanceCore:
         finally:
             bag.close()
 
-        csv_array = pc_features_to_array(msg)
+        feature_tuple = pc_features_to_array(msg)
         if not os.path.exists(csv_directory):
             os.makedirs(csv_directory)
 
-        csv_path = csv_directory + str(status) + '.csv'
+        csv_path_features = csv_directory + str(status) + '.csv'
+        csv_path_preproc_features = csv_directory + str(status) + '_preproc.csv'
 
-        with open(csv_path, "wb") as f:
+        with open(csv_path_features, "wb") as f:
             writer = csv.writer(f)
-            writer.writerow(csv_array)
-            rospy.loginfo("Saved features to: %s" % (csv_path))
+            writer.writerow(feature_tuple[0])
+            rospy.loginfo("Saved features to: %s" % (csv_path_features))
+
+        with open(csv_path_preproc_features, "wb") as f:
+            writer = csv.writer(f)
+            writer.writerow(feature_tuple[1])
+            rospy.loginfo("Saved preprocessed features to: %s" % (csv_path_preproc_features))
 
     def generate_file_name(self, obj, action,iteration_num, status, type):
         file_name = '%d_%d_%s_%s_%d' % (self.run_id, iteration_num, obj.name, action.name,status)

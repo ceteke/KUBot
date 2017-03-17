@@ -47,37 +47,5 @@ def are_poses_equal(p1, p2):
             return True
     return False
 
-def round_array(arr):
-    for i in range(len(arr)):
-        arr[i] = float('%.6f'%round(arr[i],6))
-
-def pc_features_to_array(pc_feats):
-    transform = pc_feats.transform
-    translation = transform.translation
-    rotation = transform.rotation
-    pc_centroid = pc_feats.points_centroid
-    pc_min = pc_feats.points_min
-    pc_max = pc_feats.points_max
-    rgba_color = pc_feats.rgba_color
-    bb_center = pc_feats.bb_center
-    bb_dims = pc_feats.bb_dims
-    pc_size = pc_feats.num_points #???
-
-    bb_volume = bb_dims.x * bb_dims.y * bb_dims.z
-    bb_area = 2*(bb_dims.x*bb_dims.y + bb_dims.x*bb_dims.z + bb_dims.y*bb_dims.z)
-    bb_aspect_ratio = bb_dims.y / bb_dims.x
-    bb_area_over_volume = bb_area / bb_volume
-    compactness = bb_volume / pc_size
-
-    result = [335, bb_center.x, bb_center.y, bb_center.z, pc_feats.bb_angle,
-                pc_centroid.x, pc_centroid.y, pc_centroid.z, pc_min.x, pc_min.y,
-                pc_min.z, pc_max.x, pc_max.y, pc_max.z, rgba_color.r * 255.0, rgba_color.g * 255.0,
-                rgba_color.b * 255.0, pc_feats.hue, pc_size, bb_dims.x, bb_dims.y, bb_dims.z, bb_volume,
-                bb_area, bb_aspect_ratio, bb_area_over_volume, compactness]
-
-    result = result + list(pc_feats.data)
-    round_array(result)
-    return result
-
 def isclose(n1, n2, tol=0.001):
     return abs(n1 - n2) <= tol

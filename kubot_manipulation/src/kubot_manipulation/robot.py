@@ -1,6 +1,5 @@
 from arm import Arm
 from hand import Hand
-from eye import Eye
 
 class Robot:
 
