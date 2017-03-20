@@ -40,7 +40,7 @@ class Cylinder(MyObject):
             MyObject.__init__(self,'vcylinder',pose,pose_num,'basic_cylinder.urdf')
         if type == 'h':
             pose.orientation.x = 0.706939881073
-            pose.orientation.y = -0.0143601696663
-            pose.orientation.z = -0.0146325053389
+            pose.orientation.y = 0.0156166025414
+            pose.orientation.z = 0.0156778071406
             pose.orientation.w = 0.706927388518
             MyObject.__init__(self,'hcylinder',pose,pose_num,'basic_cylinder.urdf')
