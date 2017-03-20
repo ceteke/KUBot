@@ -71,7 +71,7 @@ class GazeboInterface:
             spReq.model_state.model_name = object_name;
             spReq.model_state.pose = pose
             if twist is not None:
-                spReq.model_state.twist = desired_twist
+                spReq.model_state.twist = twist
             spResp = sp(spReq)
             if not spResp.success:
                 rospy.logerr('Failed to set object pose. %s'%spResp.status_message)

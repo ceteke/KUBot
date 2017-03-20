@@ -5,6 +5,7 @@ from arm import Arm
 from hand import Hand
 from robot import Robot
 from kubot_gazebo.object_handler import ObjectHandler
+from kubot_gazebo.gazebo_interface import GazeboInterface
 from MyAction import Push
 
 def main():
@@ -12,6 +13,7 @@ def main():
     robot = Robot()
     oh = ObjectHandler()
     push_action = Push(robot)
+    gi = GazeboInterface()
 
     action_poses = \
         {'push':[
@@ -64,6 +66,9 @@ def main():
             action_name = cmd_input[1]
             pose_num = cmd_input[2]
             robot.arm.go_to_pose(action_poses[action_name][int(pose_num)])
+        elif cmd == 'get_object_pose':
+            o_name = cmd_input[1]
+            print gi.get_object_pose(o_name)
 
 if __name__ == '__main__':
     try:

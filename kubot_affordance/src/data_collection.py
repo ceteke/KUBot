@@ -8,11 +8,10 @@ from random import randint
 from affordance_core import AffordanceCore
 
 def main():
-    rospy.init_node('kubot_affordance', anonymous=True)
+    rospy.init_node('kubot_data_collector', anonymous=True)
     object_handler = ObjectHandler()
     gazebo_interface = GazeboInterface()
     affordance_core = AffordanceCore()
-
     iteration_num = 1
     while True:
         action = affordance_core.get_random_action()
@@ -21,7 +20,6 @@ def main():
         if action.prepare(affordance_core.get_action_initial_point(action,picked_object)) == -1:
             rospy.loginfo("Faild to go next to %s in pose %d passing..." %(picked_object.name, picked_object.pose_num))
             continue
-
         picked_object.place_on_table()
         affordance_core.save_data(picked_object, action, iteration_num, 0)
         rospy.loginfo("Performing action: %s"%(action.name))
