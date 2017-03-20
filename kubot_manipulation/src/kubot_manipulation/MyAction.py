@@ -1,11 +1,18 @@
 from utils import array_to_pose
 from copy import deepcopy
+import pickle
 
 class MyAction(object):
 
     def __init__(self,name,robot):
         self.robot = robot
         self.name = name
+
+    def load_prefitted_model(self,model_name):
+        self.model = pickle.load(open('/home/cem/learning/%s_%s'%(self.name,model_name), 'rb'))
+        self.effect_scaler = pickle.load(open('/home/cem/learning/%s_effect_scaler'%(self.name), 'rb'))
+        self.before_scaler = pickle.load(open('/home/cem/learning/%s_before_scaler'%(self.name), 'rb'))
+        self.effect_cluster = pickle.load(open('/home/cem/learning/%s_effect_cluster'%(self.name), 'rb'))
 
 class Push(MyAction):
 

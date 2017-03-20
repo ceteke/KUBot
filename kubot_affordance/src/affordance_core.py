@@ -11,7 +11,8 @@ from pc_segmentation.msg import PcFeatures
 from utils import pc_features_to_array
 import csv
 import os
-
+import pickle
+import numpy as np
 
 class AffordanceCore:
 
@@ -38,6 +39,8 @@ class AffordanceCore:
 
         self.run_id = self.get_run_id()
 
+        self.cluster_labels = {0: 'Stay', 1: 'Roll'}
+
     def get_run_id(self):
         with open('/home/cem/run_id.txt', 'r+') as f:
             lines = f.readlines()
@@ -57,6 +60,13 @@ class AffordanceCore:
     def save_pcd(self,obj_name,action_name,iteration_num,status):
         msg = rospy.wait_for_message(self.pcd_topic, PointCloud2)
         python_pcd.write_pcd(self.pcd_base_path+self.generate_file_name(obj_name,iteration_num,status,0), msg)
+
+    def get_features(self):
+        msg = rospy.wait_for_message(self.features_topic, PcFeatures)
+        while msg.hue != 0.0:
+            print msg.hue
+            msg = rospy.wait_for_message(self.features_topic, PcFeatures)
+        return pc_features_to_array(msg)[1]
 
     def save_features(self,obj,action,iteration_num,status):
         bag_path = self.features_base_path+'bag/'+self.generate_file_name(obj,action,iteration_num,status,1)
@@ -106,6 +116,12 @@ class AffordanceCore:
         i = randint(0,len(self.actions)-1)
         return self.actions[i]
 
+    def predict_effect(self,action,model_name,before_features):
+        action.load_prefitted_model(model_name)
+        before_features = action.before_scaler.transform(np.array(before_features).reshape(1,-1))
+        predicted_effect = action.model.predict(before_features)
+        predicted_cluster = action.effect_cluster.predict(predicted_effect)[0]
+        return self.cluster_labels[predicted_cluster]
     # Is interesting?
     # Predict effect
     # Fit new data
