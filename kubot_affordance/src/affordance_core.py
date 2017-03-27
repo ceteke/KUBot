@@ -39,7 +39,7 @@ class AffordanceCore:
 
         self.run_id = self.get_run_id()
 
-        self.cluster_labels = {0: 'Stay', 1: 'Roll'}
+        self.cluster_labels = {1: 'Stay', 0: 'Roll'}
 
     def get_run_id(self):
         with open('/home/cem/run_id.txt', 'r+') as f:
@@ -116,9 +116,9 @@ class AffordanceCore:
         i = randint(0,len(self.actions)-1)
         return self.actions[i]
 
-    def predict_effect(self,action,model_name,before_features):
-        action.load_prefitted_model(model_name)
-        before_features = action.before_scaler.transform(np.array(before_features).reshape(1,-1))
+    def predict_effect(self,action,before_features):
+        before_features /= np.max(np.abs(before_features),axis=0)
+        before_features = np.array(before_features).reshape(1,-1)
         predicted_effect = action.model.predict(before_features)
         predicted_cluster = action.effect_cluster.predict(predicted_effect)[0]
         return self.cluster_labels[predicted_cluster]

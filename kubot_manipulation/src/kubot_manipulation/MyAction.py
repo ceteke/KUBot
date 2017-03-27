@@ -7,12 +7,14 @@ class MyAction(object):
     def __init__(self,name,robot):
         self.robot = robot
         self.name = name
+        self.load_prefitted_model()
 
-    def load_prefitted_model(self,model_name):
-        self.model = pickle.load(open('/home/cem/learning/%s_%s'%(self.name,model_name), 'rb'))
-        self.effect_scaler = pickle.load(open('/home/cem/learning/%s_effect_scaler'%(self.name), 'rb'))
-        self.before_scaler = pickle.load(open('/home/cem/learning/%s_before_scaler'%(self.name), 'rb'))
-        self.effect_cluster = pickle.load(open('/home/cem/learning/%s_effect_cluster'%(self.name), 'rb'))
+    def load_prefitted_model(self):
+        self.model = pickle.load(open('/home/cem/learning/models/%s_linear_regression'%(self.name), 'rb'))
+        self.effect_cluster = pickle.load(open('/home/cem/learning/models/%s_effect_cluster'%(self.name), 'rb'))
+
+    def __str__(self):
+        return self.name
 
 class Push(MyAction):
 
