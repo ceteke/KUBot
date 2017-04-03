@@ -12,6 +12,8 @@ class MyAction(object):
     def load_prefitted_model(self):
         self.model = pickle.load(open('/home/cem/learning/models/%s_linear_regression'%(self.name), 'rb'))
         self.effect_cluster = pickle.load(open('/home/cem/learning/models/%s_effect_cluster'%(self.name), 'rb'))
+        self.before_scaler = pickle.load(open('/home/cem/learning/models/%s_before_scaler'%(self.name), 'rb'))
+        self.effect_scaler = pickle.load(open('/home/cem/learning/models/%s_effect_scaler'%(self.name), 'rb'))
 
     def __str__(self):
         return self.name
