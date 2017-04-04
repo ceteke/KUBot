@@ -1,10 +1,12 @@
 import rospy
 import random
 import tf
+import numpy as np
 import geometry_msgs
 from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion
 from moveit_msgs.msg import PositionIKRequest
 from tf.transformations import euler_from_quaternion
+
 
 def trans_rot_to_pose(trans,rot):
     p = geometry_msgs.msg.Pose()

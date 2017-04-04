@@ -25,7 +25,7 @@ def main():
         picked_object.place_on_table()
         before_features = affordance_core.get_features()
         predict_str = "I predict this object will, %s" % (affordance_core.predict_effect(action,before_features))
-        va.add_say(predict_str)
+        #va.add_say(predict_str)
         rospy.loginfo(predict_str)
         action.execute()
         rospy.sleep(5)

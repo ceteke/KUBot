@@ -39,7 +39,7 @@ class AffordanceCore:
 
         self.run_id = self.get_run_id()
 
-        self.cluster_labels = {1: 'Stay', 0: 'Roll'}
+        self.cluster_labels = {0: 'Stay', 1: 'Roll'}
 
     def get_run_id(self):
         with open('/home/cem/run_id.txt', 'r+') as f:
@@ -66,7 +66,7 @@ class AffordanceCore:
         while msg.hue != 0.0:
             print msg.hue
             msg = rospy.wait_for_message(self.features_topic, PcFeatures)
-        return pc_features_to_array(msg)[1]
+        return np.array(pc_features_to_array(msg)[1])
 
     def save_features(self,obj,action,iteration_num,status):
         bag_path = self.features_base_path+'bag/'+self.generate_file_name(obj,action,iteration_num,status,1)
