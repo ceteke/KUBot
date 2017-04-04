@@ -16,6 +16,8 @@ def main():
     iteration_num = 1
     va = VoiceAssistant()
     va.start()
+    for a in affordance_core.actions:
+        a.load_prefitted_model()
     while True:
         action = affordance_core.get_random_action()
         picked_object = object_handler.pick_random_object()
@@ -25,7 +27,7 @@ def main():
         picked_object.place_on_table()
         before_features = affordance_core.get_features()
         predict_str = "I predict this object will, %s" % (affordance_core.predict_effect(action,before_features))
-        #va.add_say(predict_str)
+        va.add_say(predict_str)
         rospy.loginfo(predict_str)
         action.execute()
         rospy.sleep(5)

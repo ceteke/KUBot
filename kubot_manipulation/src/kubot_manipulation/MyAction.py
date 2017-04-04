@@ -21,7 +21,7 @@ class MyAction(object):
         self.effect_cluster = pickle.load(open('%s%s_effect_cluster'%(self.base_path, self.name), 'rb'))
         self.before_scaler = pickle.load(open('%s%s_before_scaler'%(self.base_path, self.name), 'rb'))
         self.effect_scaler = pickle.load(open('%s%s_effect_scaler'%(self.base_path, self.name), 'rb'))
-        self.W = pickle.load(open(''))
+        # self.W = pickle.load(open('%s%s_weights'%(self.base_path, self.name), 'rb'))
 
     def update_models(self, X, y, epsilon):
         X_pre = minmax_scale(X)
@@ -29,7 +29,7 @@ class MyAction(object):
         X_pre = X_pre[np.newaxis].T
         y_pre = y_pre[np.newaxis].T
         X_pre = np.vstack([X_pre, [1.0]])
-        y_pre = np.vstack([y_pre, [1.0]])
+        y_pre = np.vstack([y_pre, [0]])
         return self.update_weights(X_pre, y_pre, 0.05, epsilon)
 
     def update_weights(self, X, y, alpha, epsilon):

@@ -13,6 +13,7 @@ import csv
 import os
 import pickle
 import numpy as np
+from sklearn.preprocessing import minmax_scale
 
 class AffordanceCore:
 
@@ -39,7 +40,7 @@ class AffordanceCore:
 
         self.run_id = self.get_run_id()
 
-        self.cluster_labels = {0: 'Stay', 1: 'Roll'}
+        self.cluster_labels = {1: 'Stay', 0: 'Roll'}
 
     def get_run_id(self):
         with open('/home/cem/run_id.txt', 'r+') as f:
@@ -117,7 +118,7 @@ class AffordanceCore:
         return self.actions[i]
 
     def predict_effect(self,action,before_features):
-        before_features = action.before_scaler.transform(np.array(before_features).reshape(1,-1))
+        before_features = minmax_scale(np.array(before_features)).reshape(1,-1)
         predicted_effect = action.model.predict(before_features)
         predicted_cluster = action.effect_cluster.predict(predicted_effect)[0]
         return self.cluster_labels[predicted_cluster]
