@@ -13,7 +13,9 @@ import csv
 import os
 import pickle
 import numpy as np
+from models import GradientDescent
 from sklearn.preprocessing import minmax_scale
+from pair import Pair
 
 class AffordanceCore:
 
@@ -122,6 +124,33 @@ class AffordanceCore:
         predicted_effect = action.model.predict(before_features)
         predicted_cluster = action.effect_cluster.predict(predicted_effect)[0]
         return self.cluster_labels[predicted_cluster]
+
+    def predict_effect(self,action,obj,before_features):
+        pair = next((x for x in self.pairs if x.action.name == action.name and x.obj.id == obj.id), None)
+        y_predicted = pair.model.predict(before_features)
+        predicted_cluster = action.effect_cluster.predict(y_predicted.T)[0]
+        return self.cluster_labels[predicted_cluster]
+
+    def form_pairs(self, object_handler):
+        self.pairs = []
+        for a in self.actions:
+            for o in object_handler.objects:
+                self.pairs.append(Pair(a, o, GradientDescent(minmax_scale)))
+
+    def load_pairs(self,object_handler):
+        self.pairs = []
+        for a in self.actions:
+            for o in object_handler.objects:
+                self.pairs.append(Pair(a,o,pickle.load(open('%s%s_%s_gradient_descent'%(a.base_path, a.name, o.id), 'rb'))))
+
+    def get_random_pair(self):
+        i = randint(0,len(self.pairs)-1)
+        return self.pairs[i]
+
+    def save_pairs(self):
+        for p in self.pairs:
+            p.save()
+
     # Is interesting?
     # Predict effect
     # Fit new data

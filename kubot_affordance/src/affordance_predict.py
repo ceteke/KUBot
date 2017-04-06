@@ -14,8 +14,11 @@ def main():
     gazebo_interface = GazeboInterface()
     affordance_core = AffordanceCore()
     iteration_num = 1
+    is_online = True
     va = VoiceAssistant()
     va.start()
+    if is_online:
+        affordance_core.load_pairs(object_handler)
     for a in affordance_core.actions:
         a.load_prefitted_model()
     while True:
@@ -26,7 +29,10 @@ def main():
             continue
         picked_object.place_on_table()
         before_features = affordance_core.get_features()
-        predict_str = "I predict this object will, %s" % (affordance_core.predict_effect(action,before_features))
+        if not is_online:
+            predict_str = "I predict this object will, %s" % (affordance_core.predict_effect(action,before_features))
+        else:
+            predict_str = "I predict this object will, %s" % (affordance_core.predict_effect(action,picked_object,before_features))
         va.add_say(predict_str)
         rospy.loginfo(predict_str)
         action.execute()
