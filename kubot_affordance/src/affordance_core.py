@@ -125,7 +125,7 @@ class AffordanceCore:
         predicted_cluster = action.effect_cluster.predict(predicted_effect)[0]
         return self.cluster_labels[predicted_cluster]
 
-    def predict_effect(self,action,obj,before_features):
+    def predict_effect_o(self,action,obj,before_features):
         pair = next((x for x in self.pairs if x.action.name == action.name and x.obj.id == obj.id), None)
         y_predicted = pair.model.predict(before_features)
         predicted_cluster = action.effect_cluster.predict(y_predicted.T)[0]

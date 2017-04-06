@@ -14,7 +14,7 @@ def main():
     gazebo_interface = GazeboInterface()
     affordance_core = AffordanceCore()
     iteration_num = 1
-    is_online = True
+    is_online = False
     va = VoiceAssistant()
     va.start()
     if is_online:
@@ -24,6 +24,8 @@ def main():
     while True:
         action = affordance_core.get_random_action()
         picked_object = object_handler.pick_random_object()
+        #if not picked_object.name == 'box':
+        #    continue
         if action.prepare(affordance_core.get_action_initial_point(action,picked_object)) == -1:
             rospy.loginfo("Faild to go next to %s in pose %d passing..." %(picked_object.name, picked_object.pose_num))
             continue
@@ -32,7 +34,7 @@ def main():
         if not is_online:
             predict_str = "I predict this object will, %s" % (affordance_core.predict_effect(action,before_features))
         else:
-            predict_str = "I predict this object will, %s" % (affordance_core.predict_effect(action,picked_object,before_features))
+            predict_str = "I predict this object will, %s" % (affordance_core.predict_effect_o(action,picked_object,before_features))
         va.add_say(predict_str)
         rospy.loginfo(predict_str)
         action.execute()
