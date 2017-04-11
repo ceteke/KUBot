@@ -7,6 +7,10 @@ from robot import Robot
 from kubot_gazebo.object_handler import ObjectHandler
 from kubot_gazebo.gazebo_interface import GazeboInterface
 from MyAction import Push
+import tf2_ros
+import tf2_geometry_msgs
+from geometry_msgs.msg import PoseStamped, PointStamped, Pose
+
 
 def main():
     rospy.init_node('kubot_shell', anonymous=True)
@@ -14,6 +18,8 @@ def main():
     oh = ObjectHandler()
     push_action = Push(robot)
     gi = GazeboInterface()
+    tf_buffer = tf2_ros.Buffer(rospy.Duration(1200.0)) #tf buffer length
+    tf_listener = tf2_ros.TransformListener(tf_buffer)
 
     action_poses = \
         {'push':[
@@ -69,6 +75,29 @@ def main():
         elif cmd == 'get_object_pose':
             o_name = cmd_input[1]
             print gi.get_object_pose(o_name)
+        elif cmd == 'tf':
+            transform = tf_buffer.lookup_transform('arm_base_link',
+                                       'camera_depth_optical_frame', #source frame
+                                       rospy.Time(0), #get the tf at first available time
+                                       rospy.Duration(1.0)) #wait for 1 second
+            res = PointStamped()
+            res.point.x = -0.037543
+            res.point.y = -0.364611
+            res.point.z = 1.00199
+            res.header = transform.header
+            point_transformed = tf2_geometry_msgs.do_transform_point(res, transform)
+
+            pos = Pose()
+            pos.position.x = point_transformed.point.x
+            pos.position.y = point_transformed.point.y
+            pos.position.z = point_transformed.point.z
+            pos.orientation.x = -0.636984559527
+            pos.orientation.y = -0.249563909878
+            pos.orientation.z = 0.245820513626
+            pos.orientation.w = 0.686688285098
+            print pos
+
+            robot.arm.go_to_pose(pos)
 
 if __name__ == '__main__':
     try:
