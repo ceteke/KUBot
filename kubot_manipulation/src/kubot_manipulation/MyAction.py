@@ -7,18 +7,19 @@ from sklearn.preprocessing import minmax_scale
 
 class MyAction(object):
 
-    def __init__(self,name,robot, base_path='/home/cem/learning/models/'):
+    def __init__(self,name,robot, orientation, base_path='/home/cem/learning/models/'):
         self.robot = robot
         self.name = name
         self.dimensions = 70 # 69 + 1 (bias)
         self.base_path = base_path
+        self.orientation = orientation
 
     def load_prefitted_model(self):
         self.model = pickle.load(open('%s%s_linear_regression'%(self.base_path, self.name), 'rb'))
         self.effect_cluster = pickle.load(open('%s%s_effect_cluster'%(self.base_path, self.name), 'rb'))
 
-    def prepare(self,pose_arr):
-        return self.robot.arm.go_to_pose(array_to_pose(pose_arr))
+    def prepare(self,pose):
+        return self.robot.arm.go_to_pose(pose)
 
     def __str__(self):
         return self.name
