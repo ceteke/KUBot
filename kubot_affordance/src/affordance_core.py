@@ -11,18 +11,18 @@ from pc_segmentation.msg import PcFeatures
 from utils import pc_features_to_array
 import csv
 import os
-import pickle
 import numpy as np
-from models import GradientDescent
 from sklearn.preprocessing import minmax_scale
-from pair import Pair
+from models import ActionModel
 
 class AffordanceCore:
 
     def __init__(self):
         self.robot = Robot()
 
-        self.actions = [Push(self.robot)]
+        self.push = Push(self.robot)
+        self.actions = [self.push]
+        self.action_models = [ActionModel(self.push)]
 
         self.pcd_topic = '/camera/points'
         self.pcd_base_path = '/media/cem/ROSDATA/ros_data/pcd/'
@@ -109,6 +109,10 @@ class AffordanceCore:
     def get_random_action(self):
         i = randint(0,len(self.actions)-1)
         return self.actions[i]
+
+    def get_random_action_model(self):
+        i = randint(0,len(self.action_models)-1)
+        return self.action_models[i]
 
     def predict_effect(self,action,before_features):
         before_features = minmax_scale(np.array(before_features)).reshape(1,-1)

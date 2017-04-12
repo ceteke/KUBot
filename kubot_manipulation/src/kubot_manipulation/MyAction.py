@@ -15,7 +15,7 @@ class MyAction(object):
         self.orientation = orientation
         self.transformer = Transformer(self.robot)
 
-    def load_prefitted_model(self):
+    def load_batch_models(self):
         self.model = pickle.load(open('%s%s_linear_regression'%(self.base_path, self.name), 'rb'))
         self.effect_cluster = pickle.load(open('%s%s_effect_cluster'%(self.base_path, self.name), 'rb'))
 
@@ -45,4 +45,4 @@ class Push(MyAction):
         object_pushed_pose = deepcopy(start_pose)
         object_pushed_pose.position.x += 0.1
         object_pushed_pose.position.y += 0.1
-        self.robot.arm.go_to_pose_cartesian([object_pushed_pose])
+        return self.robot.arm.go_to_pose_cartesian([object_pushed_pose])

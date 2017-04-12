@@ -98,12 +98,17 @@ class Arm:
         return self.go_to_pose(pose)
 
     def go_to_pose_cartesian(self,waypoints):
+        trial = 0
         (plan, fraction) = self.group.compute_cartesian_path(waypoints, 0.01, 0.0, False)
         while fraction != 1.0:
+            if trial > 5:
+                return -1
             rospy.loginfo("Path computed with %f fraction. Retrying..." % fraction)
             (plan, fraction) = self.group.compute_cartesian_path(waypoints, 0.01, 0.0, False)
+            trial += 1
         rospy.loginfo("Path computed successfully with %f fraction. Moving the arm." % fraction)
         self.group.execute(plan)
+        return 1
 
     def ang_cmd(self, angles):
         trajectory = JointTrajectory()
