@@ -12,16 +12,25 @@ def main():
     rospy.init_node('kubot_online_learning', anonymous=True)
     object_handler = ObjectHandler()
     gazebo_interface = GazeboInterface()
-    epoch = 1
-    epsilon = 0.015
-    learned_pairs = []
-    i = 1
-    # Epochs
+    affordance_core = AffordanceCore()
     while True:
+        affordance_core.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
+        rospy.sleep(5)
+        action = affordance_core.get_random_action()
         obj = object_handler.pick_random_object()
         obj.set_position(object_handler.get_random_object_pose())
         obj.place_on_table()
-        rospy.sleep(1)
+        before_feats = affordance_core.get_features()
+        if before_feats is None:
+            continue
+        if action.prepare(before_feats,obj.name) == -1:
+            obj.remove()
+            continue
+        action.execute()
+        rospy.sleep(5)
+        after_feats = affordance_core.get_features()
+        if after_feats is None:
+            print "Missing object"
         obj.remove()
 
 

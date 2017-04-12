@@ -21,16 +21,6 @@ class AffordanceCore:
 
     def __init__(self):
         self.robot = Robot()
-        self.action_poses = \
-            {'push':[
-                [0.122082807535,0.253172402032,0.0547882234144,
-                    -0.675679130692,-0.282736229211,0.24811287633,0.634001528104],
-                #0.7,-1.5,2.7,5.0599,-4.7834,1.4994
-                [-0.28412935179,0.458596878826,0.0587319921008,
-                    -0.651242299506,-0.26303761784,0.245163873518,0.668273412651]
-                ]
-                #2.0714,-0.9666,1.7952,-0.9666,2.905,1.45
-            }
 
         self.actions = [Push(self.robot)]
 
@@ -41,8 +31,6 @@ class AffordanceCore:
         self.features_base_path = '/media/cem/ROSDATA/ros_data/features/'
 
         self.run_id = self.get_run_id()
-
-        self.cluster_labels = {1: 'Stay', 0: 'Roll'}
 
     def get_run_id(self):
         with open('/home/cem/run_id.txt', 'r+') as f:
@@ -66,9 +54,12 @@ class AffordanceCore:
 
     def get_features(self):
         msg = rospy.wait_for_message(self.features_topic, PcFeatures)
+        hue_counter = 0
         while msg.hue != 0.0:
-            print msg.hue
+            if hue_counter > 5:
+                return None
             msg = rospy.wait_for_message(self.features_topic, PcFeatures)
+            hue_counter += 1
         return np.array(pc_features_to_array(msg)[1])
 
     def save_features(self,obj,action,iteration_num,status):
@@ -124,32 +115,6 @@ class AffordanceCore:
         predicted_effect = action.model.predict(before_features)
         predicted_cluster = action.effect_cluster.predict(predicted_effect)[0]
         return self.cluster_labels[predicted_cluster]
-
-    def predict_effect_o(self,action,obj,before_features):
-        pair = next((x for x in self.pairs if x.action.name == action.name and x.obj.id == obj.id), None)
-        y_predicted = pair.model.predict(before_features)
-        predicted_cluster = action.effect_cluster.predict(y_predicted.T)[0]
-        return self.cluster_labels[predicted_cluster]
-
-    def form_pairs(self, object_handler):
-        self.pairs = []
-        for a in self.actions:
-            for o in object_handler.objects:
-                self.pairs.append(Pair(a, o, GradientDescent(minmax_scale)))
-
-    def load_pairs(self,object_handler):
-        self.pairs = []
-        for a in self.actions:
-            for o in object_handler.objects:
-                self.pairs.append(Pair(a,o,pickle.load(open('%s%s_%s_gradient_descent'%(a.base_path, a.name, o.id), 'rb'))))
-
-    def get_random_pair(self):
-        i = randint(0,len(self.pairs)-1)
-        return self.pairs[i]
-
-    def save_pairs(self):
-        for p in self.pairs:
-            p.save()
 
     # Is interesting?
     # Predict effect
