@@ -11,6 +11,7 @@ from pc_segmentation.msg import PcFeatures
 from utils import pc_features_to_array
 import csv
 import os
+import pickle
 import numpy as np
 from models import ActionModel
 
@@ -19,7 +20,7 @@ class IterationError(Exception):
 
 class AffordanceCore:
 
-    def __init__(self):
+    def __init__(self, models_path='/home/cem/learning/models/'):
         self.robot = Robot()
 
         self.push = Push(self.robot)
@@ -37,11 +38,12 @@ class AffordanceCore:
         self.iteration_num = 0
         self.object_handler = ObjectHandler()
 
-    def iterate(self, should_save, should_update):
+        self.models_path = models_path
+
+
+    def prepare_action(self, obj, action_model):
         self.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
         rospy.sleep(5)
-        action_model = self.get_random_action_model()
-        obj = self.object_handler.pick_random_object()
         obj.set_position(self.object_handler.get_random_object_pose())
         obj.place_on_table()
         try:
@@ -55,6 +57,9 @@ class AffordanceCore:
         if action_model.action.prepare(before_feats,obj.name) == -1:
             obj.remove()
             raise IterationError("No plan found.")
+        return before_feats
+
+    def execute_action(self, before_feats, action_model, obj, should_save, should_update):
         if action_model.action.execute() == -1:
             obj.remove()
             raise IterationError("Cartesian path is not good enough")
@@ -62,7 +67,6 @@ class AffordanceCore:
         try:
             after_feats = self.get_features()
         except rospy.exceptions.ROSException as e:
-            print "Feature timeout"
             obj.remove()
             raise IterationError("Waiting feature topic timed out.")
         if after_feats is None:
@@ -111,7 +115,7 @@ class AffordanceCore:
     def save_features(self,features,obj,action,status): #obj_name/csv/iteration_num/
         csv_path = '%s%d/%s/%s/%d/%d.csv' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num, status)
 
-        with open(csv_path_preproc_features, "wb") as f:
+        with open(csv_path, "wb") as f:
             writer = csv.writer(f)
             writer.writerow(features)
             rospy.loginfo("Saved preprocessed features to: %s" % (csv_path))
@@ -123,3 +127,11 @@ class AffordanceCore:
     def get_random_action_model(self):
         i = randint(0,len(self.action_models)-1)
         return self.action_models[i]
+
+    def save_models(self):
+        for am in self.action_models:
+            am.save()
+
+    def load_models(self):
+        for am in self.action_models:
+            am.load()

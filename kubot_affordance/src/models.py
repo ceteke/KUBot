@@ -4,11 +4,21 @@ import pickle
 from sklearn.preprocessing import minmax_scale
 
 class ActionModel():
-    def __init__(self, action):
+    def __init__(self, action, models_path='/home/cem/learning/models/'):
         self.action = action
         self.object_som = SOM()
         self.effect_som = SOM()
         self.obj_model_map = {}
+        self.models_path = models_path
+        self.path = '%s%s' % (self.models_path, self.action.name)
+        self.e_som_path = '%s_effect_som.pkl' % (self.path)
+        self.b_som_path = '%s_before_som.pkl' % (self.path)
+        self.map_path = '%s_map.pkl' % (self.path)
+
+    def load(self):
+        self.effect_som = pickle.load(open(self.e_som_path, "rb"))
+        self.object_som = pickle.load(open(self.b_som_path, "rb"))
+        self.obj_model_map = pickle.load(open(self.map_path, "rb"))
 
     def update(self, before_feats, after_feats):
         x_s = minmax_scale(before_feats)
@@ -27,12 +37,26 @@ class ActionModel():
         self.obj_model_map[cid].update(x_s, y_s)
         e_min_distance = self.effect_som.get_min_distance(y_s)
         print "Effect som min distance:", e_min_distance
-        if e_min_distance == -1 or e_min_distance > 1.5:
+        if e_min_distance == -1 or e_min_distance > 1.3:
             self.effect_som.add_neuron(y_s)
         self.effect_som.update(y_s)
 
         print "Before som #neurons:", self.object_som.x
         print "Effect som #neurons:", self.effect_som.x
+
+    def predict(self, before_feats):
+        x_s = minmax_scale(before_feats)
+        obj_cid = self.object_som.winner(x_s)[1]
+        print "Object cid:", obj_cid
+        gd = self.obj_model_map[obj_cid]
+        y_predicted = gd.predict(x_s)
+        effect_id = self.effect_som.winner(y_predicted.flatten())[1]
+        return effect_id
+
+    def save(self):
+        pickle.dump(self.effect_som, open(self.e_som_path, "wb"))
+        pickle.dump(self.object_som, open(self.b_som_path, "wb"))
+        pickle.dump(self.obj_model_map, open(self.map_path, "wb"))
 
 class SOM():
 
