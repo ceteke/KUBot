@@ -1,19 +1,21 @@
-import roslib; roslib.load_manifest('kubot_manipulation');
+import roslib; roslib.load_manifest('kubot_manipulation'); roslib.load_manifest('kubot_gazebo')
+import rospy
 from kubot_manipulation.robot import Robot
+from kubot_gazebo.object_handler import ObjectHandler
 from random import randint
 from kubot_manipulation.MyAction import Push
 import rospy
 from sensor_msgs.msg import PointCloud2
 import python_pcd
-import datetime
-import rosbag
 from pc_segmentation.msg import PcFeatures
 from utils import pc_features_to_array
 import csv
 import os
 import numpy as np
-from sklearn.preprocessing import minmax_scale
 from models import ActionModel
+
+class IterationError(Exception):
+    pass
 
 class AffordanceCore:
 
@@ -32,6 +34,49 @@ class AffordanceCore:
 
         self.run_id = self.get_run_id()
 
+        self.iteration_num = 0
+        self.object_handler = ObjectHandler()
+
+    def iterate(self, should_save, should_update):
+        self.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
+        rospy.sleep(5)
+        action_model = self.get_random_action_model()
+        obj = self.object_handler.pick_random_object()
+        obj.set_position(self.object_handler.get_random_object_pose())
+        obj.place_on_table()
+        try:
+            before_feats = self.get_features()
+        except rospy.exceptions.ROSException as e:
+            obj.remove()
+            raise IterationError("Waiting feature topic timed out.")
+        if before_feats is None:
+            obj.remove()
+            raise IterationError("Object out of scope.")
+        if action_model.action.prepare(before_feats,obj.name) == -1:
+            obj.remove()
+            raise IterationError("No plan found.")
+        if action_model.action.execute() == -1:
+            obj.remove()
+            raise IterationError("Cartesian path is not good enough")
+        rospy.sleep(5)
+        try:
+            after_feats = self.get_features()
+        except rospy.exceptions.ROSException as e:
+            print "Feature timeout"
+            obj.remove()
+            raise IterationError("Waiting feature topic timed out.")
+        if after_feats is None:
+            print "Missing object"
+            after_feats = np.array([0.0] * 69)
+        if should_update:
+            action_model.update(before_feats, after_feats)
+        if should_save:
+            self.save_data(before_feats,obj,action_model.action,0)
+            self.save_data(after_feats,obj,action_model.action,1)
+        rospy.sleep(0.5)
+        obj.remove()
+        self.iteration_num += 1
+
     def get_run_id(self):
         with open('/home/cem/run_id.txt', 'r+') as f:
             lines = f.readlines()
@@ -43,68 +88,33 @@ class AffordanceCore:
             f.close()
             return run_id
 
-    def save_data(self,obj,action,iteration_num,status):
+    def save_data(self,features,obj,action,status):
         #Status 0:Before, 1:After
         #self.save_pcd(obj,action,iteration_num,status)
-        self.save_features(obj,action,iteration_num,status)
+        self.save_features(features,obj,action,status)
 
-    def save_pcd(self,obj_name,action_name,iteration_num,status):
+    def save_pcd(self,obj,action,status):
+        pcd_path = '%s%d/%s/%s/%d/%d.pcd' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num, status)
         msg = rospy.wait_for_message(self.pcd_topic, PointCloud2)
-        python_pcd.write_pcd(self.pcd_base_path+self.generate_file_name(obj_name,iteration_num,status,0), msg)
+        python_pcd.write_pcd(pcd_path, msg)
 
     def get_features(self):
-        msg = rospy.wait_for_message(self.features_topic, PcFeatures)
+        msg = rospy.wait_for_message(self.features_topic, PcFeatures,timeout=10)
         hue_counter = 0
         while msg.hue != 0.0:
             if hue_counter > 5:
                 return None
-            msg = rospy.wait_for_message(self.features_topic, PcFeatures)
+            msg = rospy.wait_for_message(self.features_topic, PcFeatures,timeout=10)
             hue_counter += 1
         return np.array(pc_features_to_array(msg)[1])
 
-    def save_features(self,obj,action,iteration_num,status):
-        bag_path = self.features_base_path+'bag/'+self.generate_file_name(obj,action,iteration_num,status,1)
-        csv_directory = self.features_base_path+'csv/'+self.generate_file_name(obj,action,iteration_num,status,2)
-        msg = rospy.wait_for_message(self.features_topic, PcFeatures)
-        while msg.hue != 0.0:
-            print msg.hue
-            msg = rospy.wait_for_message(self.features_topic, PcFeatures)
-        print msg.hue
-        try:
-            bag = rosbag.Bag(bag_path, 'w')
-            bag.write(self.features_topic,msg)
-        finally:
-            bag.close()
-
-        feature_tuple = pc_features_to_array(msg)
-        if not os.path.exists(csv_directory):
-            os.makedirs(csv_directory)
-
-        csv_path_features = csv_directory + str(status) + '.csv'
-        csv_path_preproc_features = csv_directory + str(status) + '_preproc.csv'
-
-        with open(csv_path_features, "wb") as f:
-            writer = csv.writer(f)
-            writer.writerow(feature_tuple[0])
-            rospy.loginfo("Saved features to: %s" % (csv_path_features))
+    def save_features(self,features,obj,action,status): #obj_name/csv/iteration_num/
+        csv_path = '%s%d/%s/%s/%d/%d.csv' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num, status)
 
         with open(csv_path_preproc_features, "wb") as f:
             writer = csv.writer(f)
-            writer.writerow(feature_tuple[1])
-            rospy.loginfo("Saved preprocessed features to: %s" % (csv_path_preproc_features))
-
-    def generate_file_name(self, obj, action,iteration_num, status, type):
-        file_name = '%d_%d_%s_%s_%d' % (self.run_id, iteration_num, obj.name, action.name,status)
-        folder_name = '%d_%d_%s_%s/' % (self.run_id, iteration_num, obj.id,action.name)
-        if type == 0:
-            return file_name + '.pcd'
-        elif type == 1:
-            return file_name + '.bag'
-        elif type == 2:
-            return folder_name
-
-    def get_action_initial_point(self,action,obj):
-        return self.action_poses[action.name][obj.pose_num]
+            writer.writerow(features)
+            rospy.loginfo("Saved preprocessed features to: %s" % (csv_path))
 
     def get_random_action(self):
         i = randint(0,len(self.actions)-1)
@@ -113,14 +123,3 @@ class AffordanceCore:
     def get_random_action_model(self):
         i = randint(0,len(self.action_models)-1)
         return self.action_models[i]
-
-    def predict_effect(self,action,before_features):
-        before_features = minmax_scale(np.array(before_features)).reshape(1,-1)
-        predicted_effect = action.model.predict(before_features)
-        predicted_cluster = action.effect_cluster.predict(predicted_effect)[0]
-        return self.cluster_labels[predicted_cluster]
-
-    # Is interesting?
-    # Predict effect
-    # Fit new data
-    # Reduce feature size

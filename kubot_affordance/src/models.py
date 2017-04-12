@@ -10,12 +10,13 @@ class ActionModel():
         self.effect_som = SOM()
         self.obj_model_map = {}
 
-    def update(self, x, y):
-        x_s = minmax_scale(x)
+    def update(self, before_feats, after_feats):
+        x_s = minmax_scale(before_feats)
+        y = np.subtract(after_feats, before_feats)
         y_s = minmax_scale(y)
 
         o_min_distance = self.object_som.get_min_distance(x_s)
-        print o_min_distance
+        print "Before som min distance:", o_min_distance
         if o_min_distance > 0.8 or o_min_distance == -1:
             new_cid = self.object_som.add_neuron(x_s)
             self.obj_model_map[new_cid] = GradientDescent()
@@ -24,15 +25,14 @@ class ActionModel():
         cid = self.object_som.winner(x_s)[1]
         print "Picked gd model: %d" % (cid)
         self.obj_model_map[cid].update(x_s, y_s)
-        print "============================"
         e_min_distance = self.effect_som.get_min_distance(y_s)
-        print e_min_distance
-        if e_min_distance == -1 or e_min_distance > 1.25:
+        print "Effect som min distance:", e_min_distance
+        if e_min_distance == -1 or e_min_distance > 1.5:
             self.effect_som.add_neuron(y_s)
         self.effect_som.update(y_s)
 
-        print self.object_som.x
-        print self.effect_som.x
+        print "Before som #neurons:", self.object_som.x
+        print "Effect som #neurons:", self.effect_som.x
 
 class SOM():
 
@@ -114,7 +114,7 @@ class GradientDescent():
         y_s = y[np.newaxis].T
         y_s = np.vstack([y_s, [0.0]])
         J = self.get_square_error(x_s, y_s) / 2
-        print J
+        print "J:", J
         self.Js.append(J)
         dJdW = np.matmul(self.W, np.matmul(x_s, x_s.T)) - np.matmul(y_s, x_s.T)
         self.W -= self.alpha_t * dJdW
