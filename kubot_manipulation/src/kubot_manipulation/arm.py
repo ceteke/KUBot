@@ -23,6 +23,7 @@ class Arm:
         self.scene = moveit_commander.PlanningSceneInterface()
         self.group.set_planner_id("RRTConnectkConfigDefault")
         self.group.set_pose_reference_frame(self.root)
+        self.prev_pose = self.get_current_pose()
 
     def get_current_pose(self):
         return self.get_FK()[0].pose
@@ -85,9 +86,13 @@ class Arm:
         plan = self.group.plan()
         if len(plan.joint_trajectory.points) == 0:
             return -1
+        self.prev_pose = self.get_current_pose()
         self.group.execute(plan)
         self.group.clear_pose_targets()
         return 1
+
+    def go_prev_pose(self):
+        return self.go_to_pose(self.prev_pose)
 
     def go_to_object(self,pose,obj_name,obj_pose,obj_size):
         self.scene.remove_world_object()
@@ -106,6 +111,7 @@ class Arm:
             rospy.loginfo("Path computed with %f fraction. Retrying..." % fraction)
             (plan, fraction) = self.group.compute_cartesian_path(waypoints, 0.01, 0.0, False)
             trial += 1
+        self.prev_pose = self.get_current_pose()
         rospy.loginfo("Path computed successfully with %f fraction. Moving the arm." % fraction)
         self.group.execute(plan)
         return 1

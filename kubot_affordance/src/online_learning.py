@@ -11,12 +11,23 @@ def main():
     object_handler = ObjectHandler()
     try:
         while True:
+            affordance_core.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
+            rospy.sleep(3)
             try:
                 obj = object_handler.pick_random_object()
+                obj_pose = object_handler.get_random_object_pose()
                 action_model = affordance_core.get_random_action_model()
-                before_feats = affordance_core.prepare_action(obj, action_model)
-                affordance_core.execute_action(before_feats,action_model, obj, False, True)
-                affordance_core.save_models()
+                is_first = True
+                while True:
+                    before_feats = affordance_core.prepare_action(obj, action_model, obj_pose, is_first)
+                    is_learned = affordance_core.execute_action(before_feats,action_model, obj, False, True)
+                    affordance_core.save_models()
+                    if is_learned:
+                        rospy.loginfo("Boring...")
+                        break
+                    else:
+                        is_first = False
+                        affordance_core.robot.arm.go_prev_pose()
             except IterationError as e:
                 rospy.loginfo(e.message)
                 continue

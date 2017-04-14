@@ -41,11 +41,19 @@ class AffordanceCore:
         self.models_path = models_path
 
 
-    def prepare_action(self, obj, action_model):
+    def prepare_action_random(self, obj, action_model):
         self.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
         rospy.sleep(5)
         obj.set_position(self.object_handler.get_random_object_pose())
         obj.place_on_table()
+        return self.move_to_object(obj, action_model, True)
+
+    def prepare_action(self, obj, action_model, obj_pose, should_move):
+        obj.set_position(obj_pose)
+        obj.place_on_table()
+        return self.move_to_object(obj, action_model, should_move)
+
+    def move_to_object(self, obj, action_model, should_move):
         try:
             before_feats = self.get_features()
         except rospy.exceptions.ROSException as e:
@@ -54,12 +62,14 @@ class AffordanceCore:
         if before_feats is None:
             obj.remove()
             raise IterationError("Object out of scope.")
-        if action_model.action.prepare(before_feats,obj.name) == -1:
-            obj.remove()
-            raise IterationError("No plan found.")
+        if should_move:
+            if action_model.action.prepare(before_feats,obj.name) == -1:
+                obj.remove()
+                raise IterationError("No plan found.")
         return before_feats
 
     def execute_action(self, before_feats, action_model, obj, should_save, should_update):
+        is_learned = False
         if action_model.action.execute() == -1:
             obj.remove()
             raise IterationError("Cartesian path is not good enough")
@@ -67,19 +77,20 @@ class AffordanceCore:
         try:
             after_feats = self.get_features()
         except rospy.exceptions.ROSException as e:
-            obj.remove()
-            raise IterationError("Waiting feature topic timed out.")
+            print "Missing object"
+            after_feats = np.array([0.0] * 69)
         if after_feats is None:
             print "Missing object"
             after_feats = np.array([0.0] * 69)
         if should_update:
-            action_model.update(before_feats, after_feats)
+            is_learned = action_model.update(before_feats, after_feats)
         if should_save:
             self.save_data(before_feats,obj,action_model.action,0)
             self.save_data(after_feats,obj,action_model.action,1)
         rospy.sleep(0.5)
         obj.remove()
         self.iteration_num += 1
+        return is_learned
 
     def get_run_id(self):
         with open('/home/cem/run_id.txt', 'r+') as f:
@@ -113,8 +124,10 @@ class AffordanceCore:
         return np.array(pc_features_to_array(msg)[1])
 
     def save_features(self,features,obj,action,status): #obj_name/csv/iteration_num/
-        csv_path = '%s%d/%s/%s/%d/%d.csv' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num, status)
-
+        csv_path = '%s%d/%s/%s/%d/' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num)
+        if not os.path.exists(csv_path):
+            os.makedirs(csv_path)
+        csv_path += '%d.csv' % (status)
         with open(csv_path, "wb") as f:
             writer = csv.writer(f)
             writer.writerow(features)

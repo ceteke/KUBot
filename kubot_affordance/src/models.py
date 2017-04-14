@@ -6,8 +6,8 @@ from sklearn.preprocessing import minmax_scale
 class ActionModel():
     def __init__(self, action, models_path='/home/cem/learning/models/'):
         self.action = action
-        self.object_som = SOM()
-        self.effect_som = SOM()
+        self.object_som = SOM(alpha0=1.2, sigma0=0.088)
+        self.effect_som = SOM(alpha0=0.2, sigma0=0.47)
         self.obj_model_map = {}
         self.models_path = models_path
         self.path = '%s%s' % (self.models_path, self.action.name)
@@ -29,20 +29,27 @@ class ActionModel():
         print "Before som min distance:", o_min_distance
         if o_min_distance > 0.8 or o_min_distance == -1:
             new_cid = self.object_som.add_neuron(x_s)
-            self.obj_model_map[new_cid] = GradientDescent()
-        self.object_som.update(x_s)
+            self.obj_model_map[new_cid] = OnlineRegression()
+        else:
+            self.object_som.update(x_s)
 
         cid = self.object_som.winner(x_s)[1]
         print "Picked gd model: %d" % (cid)
-        self.obj_model_map[cid].update(x_s, y_s)
+        regressor = self.obj_model_map[cid]
+        regressor.update(x_s, y_s)
         e_min_distance = self.effect_som.get_min_distance(y_s)
         print "Effect som min distance:", e_min_distance
-        if e_min_distance == -1 or e_min_distance > 1.3:
+        if e_min_distance == -1 or e_min_distance > 2:
             self.effect_som.add_neuron(y_s)
-        self.effect_som.update(y_s)
+        else:
+            self.effect_som.update(y_s)
 
         print "Before som #neurons:", self.object_som.x
         print "Effect som #neurons:", self.effect_som.x
+        print regressor.get_mean_err()
+        if regressor.get_mean_err() < 10:
+            return True
+        return False
 
     def predict(self, before_feats):
         x_s = minmax_scale(before_feats)
@@ -122,16 +129,19 @@ class SOM():
             q[i] = self.weights[self.get_bmu_index(x)]
         return q
 
-class GradientDescent():
+class OnlineRegression():
 
-    def __init__(self, dimensions = 70, alpha0 = 0.2):
-        self.name = 'gradient_descent'
+    def __init__(self, dimensions = 70, alpha0 = 0.25):
+        self.name = 'online_regression'
         self.dimensions = dimensions
         self.alpha0 = alpha0
         self.W = np.random.rand(self.dimensions, self.dimensions)
         self.Js = []
         self.t = 0
         self.alpha_t = self.alpha0
+
+    def get_mean_err(self):
+        return np.mean(self.Js)
 
     def update(self, x, y):
         x_s = self.__preproc_x(x)

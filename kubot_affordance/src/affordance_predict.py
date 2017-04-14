@@ -16,7 +16,7 @@ def main():
         try:
             obj = object_handler.pick_random_object()
             action_model = affordance_core.get_random_action_model()
-            before_feats = affordance_core.prepare_action(obj, action_model)
+            before_feats = affordance_core.prepare_action_random(obj, action_model)
             e = action_model.predict(before_feats)
             print "Effect cid:", e
             affordance_core.execute_action(before_feats,action_model, obj, False, False)
