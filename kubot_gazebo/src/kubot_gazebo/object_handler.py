@@ -12,7 +12,7 @@ class ObjectHandler:
         self.hcylinder = Cylinder('h')
         self.vcylinder = Cylinder('v')
 
-        self.objects = [self.box, self.sphere, self.hcylinder, self.vcylinder]
+        self.objects = [self.box, self.sphere, self.vcylinder, self.hcylinder]
 
     def pick_random_object(self):
         i = randint(0,len(self.objects)-1)
@@ -21,7 +21,7 @@ class ObjectHandler:
 
     def get_random_object_pose(self):
         pos = Pose()
-        pos.position.x = uniform(0.0, 0.25)
+        pos.position.x = uniform(-0.45, 0.25)
         pos.position.y = uniform(-0.5, 0.15)
         pos.position.z = 0.8
         return pos

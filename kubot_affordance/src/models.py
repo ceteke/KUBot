@@ -6,8 +6,8 @@ from sklearn.preprocessing import minmax_scale
 class ActionModel():
     def __init__(self, action, models_path='/home/cem/learning/models/'):
         self.action = action
-        self.object_som = SOM(alpha0=0.5, sigma0=0.15)
-        self.effect_som = SOM(alpha0=0.2, sigma0=0.5)
+        self.object_som = SOM(alpha0=0.2, sigma0=0.21)
+        self.effect_som = SOM(alpha0=0.2, sigma0=0.17)
         self.obj_model_map = {}
         self.models_path = models_path
         self.path = '%s%s' % (self.models_path, self.action.name)
@@ -26,7 +26,7 @@ class ActionModel():
     def update(self, before_feats, after_feats,is_gone):
         x_s = self.scale(before_feats)
         if not is_gone:
-            y = np.subtract(after_feats, before_feats)
+            y = np.absolute(np.subtract(after_feats, before_feats))
             y_s = self.scale(y)
         else:
             y_s = np.array([-1.0] * 52)
@@ -49,7 +49,7 @@ class ActionModel():
         J = regressor.update(x_s, y_s)
         e_min_distance = self.effect_som.get_min_distance(y_s)
         print "Effect som min distance:", e_min_distance
-        if e_min_distance == -1 or e_min_distance > 1.9:
+        if e_min_distance == -1 or e_min_distance > 1.5:
             self.effect_som.add_neuron(y_s)
         else:
             self.effect_som.update(y_s)
@@ -78,7 +78,7 @@ class ActionModel():
 
 class SOM():
 
-    def __init__(self, x=0, y=1, feature_size=52, alpha0=0.2, sigma0=0.5, T1=100, T2=100):
+    def __init__(self, x=0, y=1, feature_size=52, alpha0=0.2, sigma0=0.5, T1=1000, T2=1000):
         self.x = x # Num of columns
         self.y = y # Num of rows
         self.alpha0 = alpha0
