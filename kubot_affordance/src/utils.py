@@ -7,7 +7,7 @@ def round_array(arr):
 
 def pre_proc_features(feature_arr):
     preproc_features = []
-    features_to_use = [1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,19,20,21,22,23,24,25,26]
+    features_to_use = [1,2,3,17,19,20,21]
 
     for f in features_to_use:
         preproc_features.append(feature_arr[f])

@@ -14,13 +14,14 @@ import os
 import pickle
 import numpy as np
 from models import ActionModel
+from sklearn.preprocessing import minmax_scale
 
 class IterationError(Exception):
     pass
 
 class AffordanceCore:
 
-    def __init__(self, models_path='/home/cem/learning/models/'):
+    def __init__(self, object_handler, models_path='/home/cem/learning/models/'):
         self.robot = Robot()
 
         self.push = Push(self.robot)
@@ -31,12 +32,12 @@ class AffordanceCore:
         self.pcd_base_path = '/media/cem/ROSDATA/ros_data/pcd/'
 
         self.features_topic = '/baris/features'
-        self.features_base_path = '/media/cem/ROSDATA/ros_data/features/'
+        self.features_base_path = '/media/cem/ROSDATA/ros_data/features'
 
         self.run_id = self.get_run_id()
 
         self.iteration_num = 0
-        self.object_handler = ObjectHandler()
+        self.object_handler = object_handler
 
         self.models_path = models_path
 
@@ -70,27 +71,35 @@ class AffordanceCore:
 
     def execute_action(self, before_feats, action_model, obj, should_save, should_update):
         is_learned = False
+        is_gone = False
+        after_feats = []
         if action_model.action.execute() == -1:
             obj.remove()
             raise IterationError("Cartesian path is not good enough")
         rospy.sleep(5)
         try:
             after_feats = self.get_features()
-        except rospy.exceptions.ROSException as e:
+            if after_feats is not None: #When object dropped from table but still visible
+                if after_feats[2] > 1.0:
+                    print "Object dropped"
+                    is_gone = True
+            else: # segmented blue part 5 times
+                print "Missing object"
+                is_gone = True
+        except rospy.exceptions.ROSException as e: # timeout
             print "Missing object"
-            after_feats = np.array([0.0] * 69)
-        if after_feats is None:
-            print "Missing object"
-            after_feats = np.array([0.0] * 69)
+            is_gone = True
         if should_update:
-            is_learned = action_model.update(before_feats, after_feats)
+            is_learned = action_model.update(before_feats, after_feats, is_gone)
         if should_save:
             self.save_data(before_feats,obj,action_model.action,0)
+            if is_gone:
+                after_feats = [-1.0] * 52
             self.save_data(after_feats,obj,action_model.action,1)
         rospy.sleep(0.5)
         obj.remove()
         self.iteration_num += 1
-        return is_learned
+        return is_learned, after_feats
 
     def get_run_id(self):
         with open('/home/cem/run_id.txt', 'r+') as f:
@@ -124,7 +133,7 @@ class AffordanceCore:
         return np.array(pc_features_to_array(msg)[1])
 
     def save_features(self,features,obj,action,status): #obj_name/csv/iteration_num/
-        csv_path = '%s%d/%s/%s/%d/' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num)
+        csv_path = '%s/new1/%d/%s/%s/%d/' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num)
         if not os.path.exists(csv_path):
             os.makedirs(csv_path)
         csv_path += '%d.csv' % (status)

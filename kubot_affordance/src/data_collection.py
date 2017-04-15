@@ -6,8 +6,8 @@ from affordance_core import AffordanceCore, IterationError
 
 def main():
     rospy.init_node('kubot_data_collector', anonymous=True)
-    affordance_core = AffordanceCore()
     object_handler = ObjectHandler()
+    affordance_core = AffordanceCore(object_handler)
     while True:
         try:
             obj = object_handler.pick_random_object()

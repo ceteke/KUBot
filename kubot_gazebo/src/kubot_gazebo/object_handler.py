@@ -21,7 +21,7 @@ class ObjectHandler:
 
     def get_random_object_pose(self):
         pos = Pose()
-        pos.position.x = uniform(-0.45, 0.25)
+        pos.position.x = uniform(0.0, 0.25)
         pos.position.y = uniform(-0.5, 0.15)
         pos.position.z = 0.8
         return pos

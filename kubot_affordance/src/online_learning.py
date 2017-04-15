@@ -7,8 +7,11 @@ from affordance_core import AffordanceCore, IterationError
 
 def main():
     rospy.init_node('kubot_online_learning', anonymous=True)
-    affordance_core = AffordanceCore()
     object_handler = ObjectHandler()
+    affordance_core = AffordanceCore(object_handler)
+    #affordance_core.load_models()
+    trained = {}
+    count = {}
     try:
         while True:
             affordance_core.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
@@ -20,10 +23,18 @@ def main():
                 is_first = True
                 while True:
                     before_feats = affordance_core.prepare_action(obj, action_model, obj_pose, is_first)
-                    is_learned = affordance_core.execute_action(before_feats,action_model, obj, False, True)
+                    is_learned, after_feats = affordance_core.execute_action(before_feats,action_model, obj, True, True)
                     affordance_core.save_models()
+                    if is_first:
+                        if obj.name not in trained:
+                            trained[obj.name] = [(obj_pose.position.x, obj_pose.position.y)]
+                            count[obj.name] = 1
+                        else:
+                            trained[obj.name].append((obj_pose.position.x, obj_pose.position.y))
+                    else:
+                        count[obj.name] += 1
                     if is_learned:
-                        rospy.loginfo("Boring...")
+                        rospy.loginfo("=================Boring=============")
                         break
                     else:
                         is_first = False
@@ -32,6 +43,8 @@ def main():
                 rospy.loginfo(e.message)
                 continue
     except KeyboardInterrupt:
+        print trained
+        print count
         affordance_core.save_models()
         sys.exit()
 

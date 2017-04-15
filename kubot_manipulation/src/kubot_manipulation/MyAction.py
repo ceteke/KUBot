@@ -37,7 +37,7 @@ class Push(MyAction):
         pose_clone = deepcopy(pose)
         pose.position.x -= 0.125
         pose.position.y -= 0.075
-        obj_size = (before_feats[16]+0.5, before_feats[17]+0.5, before_feats[18]+0.5)
+        obj_size = (before_feats[4]+0.5, before_feats[5]+0.5, before_feats[6]+0.5)
         return self.robot.arm.go_to_object(pose, obj_name, pose_clone, obj_size)
 
     def execute(self):
