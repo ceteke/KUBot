@@ -20,11 +20,14 @@ def main():
             before_feats = affordance_core.prepare_action_random(obj, action_model)
             e, y_predicted = action_model.predict(before_feats)
             print "Effect cid:", e
-            is_learned, y_actual = affordance_core.execute_action(before_feats,action_model, obj, False, False)
+            is_learned, after_feats = affordance_core.execute_action(before_feats,action_model, obj, False, False)
+            if after_feats is not None:
+                y_actual = np.absolute(np.subtract(after_feats, before_feats))
+            else:
+                y_actual = [-1.0] * 52
             a = np.subtract(y_actual, y_predicted)
             err = np.matmul(a.T, a)[0][0]
             print err / 2
-            affordance_core.save_models()
         except IterationError as e:
             rospy.loginfo(e.message)
             continue
