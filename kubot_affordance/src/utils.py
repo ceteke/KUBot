@@ -1,5 +1,6 @@
 import numpy as np
 import rospy
+from affordance_core import IterationError
 
 def round_array(arr):
     for i in range(len(arr)):
@@ -42,6 +43,8 @@ def pc_features_to_array(pc_feats):
 
     bb_volume = bb_dims.x * bb_dims.y * bb_dims.z
     bb_area = 2*(bb_dims.x*bb_dims.y + bb_dims.x*bb_dims.z + bb_dims.y*bb_dims.z)
+    if bb_dims.x == 0 or bb_volume == 0 or pc_size == 0:
+        raise IterationError("Meaningless features..")
     bb_aspect_ratio = bb_dims.y / bb_dims.x
     bb_area_over_volume = bb_area / bb_volume
     compactness = bb_volume / pc_size
