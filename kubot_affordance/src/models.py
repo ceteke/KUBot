@@ -77,8 +77,8 @@ class ActionModel():
             self.effect_som.update(y_s)
 
         print "Effect som winner:", self.effect_som.winner(y_s)
-        print "Before som #neurons:", self.object_som.x
-        print "Effect som #neurons:", self.effect_som.x
+        print "Before som #neurons:", len(self.object_som.weights)
+        print "Effect som #neurons:", len(self.effect_som.weights)
         new_mean = regressor.get_mean_err()
         print "Mean J:", new_mean
         if J < self.epsilon_r and new_mean < old_mean:
@@ -108,6 +108,7 @@ class SOM():
         self.t_d = t_d
         self.t = 0
         self.feature_size = feature_size
+        self.weights = []
 
     def add_neuron(self, weight):
         self.weights.append(weight)
