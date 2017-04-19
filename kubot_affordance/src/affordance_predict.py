@@ -2,14 +2,15 @@
 import roslib; roslib.load_manifest('kubot_manipulation'); roslib.load_manifest('kubot_gazebo')
 import rospy
 from kubot_gazebo.object_handler import ObjectHandler
-from affordance_core import AffordanceCore, IterationError
+from affordance_core import AffordanceCore
+from errors import IterationError
 from voice import VoiceAssistant
 import numpy as np
 
 def main():
     rospy.init_node('kubot_predictor', anonymous=True)
     object_handler = ObjectHandler()
-    affordance_core = AffordanceCore(object_handler)
+    affordance_core = AffordanceCore(object_handler,run_id=620)
     affordance_core.load_models()
     va = VoiceAssistant()
     va.start()
@@ -24,7 +25,7 @@ def main():
             if after_feats is not None:
                 y_actual = np.absolute(np.subtract(after_feats, before_feats))
             else:
-                y_actual = [-1.0] * 52
+                y_actual = [-1.0] * 51
             a = np.subtract(y_actual, y_predicted)
             err = np.matmul(a.T, a)[0][0]
             print err / 2

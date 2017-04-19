@@ -3,7 +3,8 @@ import roslib; roslib.load_manifest('kubot_gazebo')
 from kubot_gazebo.object_handler import ObjectHandler
 import rospy
 import sys
-from affordance_core import AffordanceCore, IterationError
+from affordance_core import AffordanceCore
+from errors import IterationError
 
 def main():
     rospy.init_node('kubot_online_learning', anonymous=True)

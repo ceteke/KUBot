@@ -15,26 +15,25 @@ import pickle
 import numpy as np
 from models import ActionModel
 from sklearn.preprocessing import minmax_scale
-
-class IterationError(Exception):
-    pass
+from errors import IterationError
 
 class AffordanceCore:
 
-    def __init__(self, object_handler, models_path='/home/cem/learning/models/'):
+    def __init__(self, object_handler, run_id = None, models_path='/home/cem/learning/models/'):
         self.robot = Robot()
-
+        if run_id is None:
+            self.run_id = self.get_run_id()
+        else:
+            self.run_id = run_id
         self.push = Push(self.robot)
         self.actions = [self.push]
-        self.action_models = [ActionModel(self.push)]
+        self.action_models = [ActionModel(self.push, self.run_id)]
 
         self.pcd_topic = '/camera/points'
         self.pcd_base_path = '/media/cem/ROSDATA/ros_data/pcd/'
 
         self.features_topic = '/baris/features'
         self.features_base_path = '/media/cem/ROSDATA/ros_data/features'
-
-        self.run_id = self.get_run_id()
 
         self.iteration_num = 0
         self.object_handler = object_handler
@@ -94,7 +93,7 @@ class AffordanceCore:
         if should_save:
             self.save_data(before_feats,obj,action_model.action,0)
             if is_gone:
-                after_feats = [-1.0] * 52
+                after_feats = [-1.0] * 51
             self.save_data(after_feats,obj,action_model.action,1)
         rospy.sleep(0.5)
         obj.remove()

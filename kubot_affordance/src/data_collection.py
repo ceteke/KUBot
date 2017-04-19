@@ -2,7 +2,8 @@
 import roslib;roslib.load_manifest('kubot_gazebo')
 import rospy
 from kubot_gazebo.object_handler import ObjectHandler
-from affordance_core import AffordanceCore, IterationError
+from affordance_core import AffordanceCore
+from errors import IterationError
 
 def main():
     rospy.init_node('kubot_data_collector', anonymous=True)

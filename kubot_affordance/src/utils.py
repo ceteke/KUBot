@@ -1,6 +1,6 @@
 import numpy as np
 import rospy
-from affordance_core import IterationError
+from errors import IterationError
 
 def round_array(arr):
     for i in range(len(arr)):
@@ -8,7 +8,7 @@ def round_array(arr):
 
 def pre_proc_features(feature_arr):
     preproc_features = []
-    features_to_use = [1,2,3,17,19,20,21]
+    features_to_use = [1,2,3,19,20,21]
 
     for f in features_to_use:
         preproc_features.append(feature_arr[f])

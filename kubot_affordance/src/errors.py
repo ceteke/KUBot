@@ -1,0 +1,2 @@
+class IterationError(Exception):
+    pass
