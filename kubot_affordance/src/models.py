@@ -6,11 +6,18 @@ from sklearn.preprocessing import minmax_scale
 class ActionModel():
     def __init__(self, action, run_id,
                  feature_size=51,models_path='/home/cem/learning/models/',
-                 epsilon_o=0.01, epsilon_r=0.1, epsilon_e=0.014):
+                 epsilon_o=0.01, epsilon_r=0.05, epsilon_e=0.014,
+                 alpha_o=0.2, alpha_e=0.2, alpha_r=0.5, d_o=0.005, d_e=0.0075):
         self.action = action
         self.feature_size = feature_size
-        self.object_som = SOM(feature_size=self.feature_size,alpha0=0.2, d0=0.005)
-        self.effect_som = SOM(feature_size=self.feature_size,alpha0=0.2, d0=0.0075)
+        self.epsilon_o = epsilon_o
+        self.epsilon_r = epsilon_r
+        self.epsilon_e = epsilon_e
+        self.alpha_o = alpha_o
+        self.alpha_e = alpha_e
+        self.alpha_r = alpha_r
+        self.object_som = SOM(feature_size=self.feature_size,alpha0=self.alpha_o, d0=self.d_o)
+        self.effect_som = SOM(feature_size=self.feature_size,alpha0=self.alpha_e, d0=self.d_e)
         self.obj_model_map = {}
         self.models_path = models_path
         self.run_id = run_id
@@ -48,7 +55,7 @@ class ActionModel():
 
         cid = self.object_som.winner(x_s)
         if cid not in self.obj_model_map:
-            self.obj_model_map[cid] = OnlineRegression(dimensions=self.feature_size+1)
+            self.obj_model_map[cid] = OnlineRegression(dimensions=self.feature_size+1,alpha0=self.alpha_r)
         print "Picked regression model:", cid
         regressor = self.obj_model_map[cid]
         if len(regressor.Js) >= 1:
@@ -88,7 +95,7 @@ class ActionModel():
 
 class SOM():
 
-    def __init__(self,feature_size=51, d0=0.2, sigma0=0.5, T1=100, T2=10):
+    def __init__(self,feature_size=51, alpha0=0.2, d0=0.5, T1=100, T2=10):
         self.x = x # Num of columns
         self.y = y # Num of rows
         self.alpha0 = alpha0
