@@ -19,7 +19,7 @@ from errors import IterationError
 
 class AffordanceCore:
 
-    def __init__(self, object_handler, run_id = None, models_path='/home/cem/learning/models/'):
+    def __init__(self, object_handler, feature_size = 51, run_id = None, models_path='/home/cem/learning/models/'):
         self.robot = Robot()
         if run_id is None:
             self.run_id = self.get_run_id()
@@ -39,6 +39,8 @@ class AffordanceCore:
         self.object_handler = object_handler
 
         self.models_path = models_path
+
+        self.feature_size = feature_size
 
 
     def prepare_action_random(self, obj, action_model):
@@ -93,7 +95,7 @@ class AffordanceCore:
         if should_save:
             self.save_data(before_feats,obj,action_model.action,0)
             if is_gone:
-                after_feats = [-1.0] * 51
+                after_feats = [-1.0] * self.feature_size
             self.save_data(after_feats,obj,action_model.action,1)
         rospy.sleep(0.5)
         obj.remove()
@@ -132,7 +134,7 @@ class AffordanceCore:
         return np.array(pc_features_to_array(msg)[1])
 
     def save_features(self,features,obj,action,status): #obj_name/csv/iteration_num/
-        csv_path = '%s/new1/%d/%s/%s/%d/' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num)
+        csv_path = '%s/new2/%d/%s/%s/%d/' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num)
         if not os.path.exists(csv_path):
             os.makedirs(csv_path)
         csv_path += '%d.csv' % (status)

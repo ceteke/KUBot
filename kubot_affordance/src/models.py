@@ -7,7 +7,8 @@ class ActionModel():
     def __init__(self, action, run_id,
                  feature_size=51,models_path='/home/cem/learning/models/',
                  epsilon_o=0.01, epsilon_r=0.05, epsilon_e=0.014,
-                 alpha_o=0.2, alpha_e=0.2, alpha_r=0.5, d_o=0.005, d_e=0.0075):
+                 alpha_o=0.2, alpha_e=0.2, alpha_r=0.5, d_o=0.005, d_e=0.0075,
+                 t_alpha=100.0, t_d=10.0, t_r=100.0):
         self.action = action
         self.feature_size = feature_size
         self.epsilon_o = epsilon_o
@@ -16,8 +17,13 @@ class ActionModel():
         self.alpha_o = alpha_o
         self.alpha_e = alpha_e
         self.alpha_r = alpha_r
-        self.object_som = SOM(feature_size=self.feature_size,alpha0=self.alpha_o, d0=self.d_o)
-        self.effect_som = SOM(feature_size=self.feature_size,alpha0=self.alpha_e, d0=self.d_e)
+        self.t_alpha = t_alpha #Decay rate of alpha of SOM
+        self.t_d = t_d # Decay rate of d of SOM
+        self.t_r = t_r # Decay rate of alpha of regression
+        self.d_o = d_o
+        self.d_e = d_e
+        self.object_som = SOM(feature_size=self.feature_size,alpha0=self.alpha_o, d0=self.d_o, t_alpha=self.t_alpha, t_d=self.t_d)
+        self.effect_som = SOM(feature_size=self.feature_size,alpha0=self.alpha_e, d0=self.d_e, t_alpha=self.t_alpha, t_d=self.t_d)
         self.obj_model_map = {}
         self.models_path = models_path
         self.run_id = run_id
@@ -55,7 +61,7 @@ class ActionModel():
 
         cid = self.object_som.winner(x_s)
         if cid not in self.obj_model_map:
-            self.obj_model_map[cid] = OnlineRegression(dimensions=self.feature_size+1,alpha0=self.alpha_r)
+            self.obj_model_map[cid] = OnlineRegression(dimensions=self.feature_size+1,alpha0=self.alpha_r,t_r=self.t_r)
         print "Picked regression model:", cid
         regressor = self.obj_model_map[cid]
         if len(regressor.Js) >= 1:
@@ -95,13 +101,11 @@ class ActionModel():
 
 class SOM():
 
-    def __init__(self,feature_size=51, alpha0=0.2, d0=0.5, T1=100, T2=10):
-        self.x = x # Num of columns
-        self.y = y # Num of rows
+    def __init__(self,feature_size=51, alpha0=0.2, d0=0.5, t_alpha=100, t_d=10):
         self.alpha0 = alpha0
         self.d0 = d0
-        self.T1 = T1
-        self.T2 = T2
+        self.t_alpha = t_alpha
+        self.t_d = t_d
         self.t = 0
         self.feature_size = feature_size
 
@@ -110,10 +114,10 @@ class SOM():
         return len(self.weights) - 1
 
     def decay_alpha(self):
-        return self.alpha0 * np.exp(-1.0 * (float(self.t) / float(self.T1)))
+        return self.alpha0 * np.exp(-1.0 * (float(self.t) / float(self.t_alpha)))
 
     def decay_d(self):
-        return self.d0 * np.exp(-1.0 * (float(self.t) / float(self.T2)))
+        return self.d0 * np.exp(-1.0 * (float(self.t) / float(self.t_d)))
 
     def get_bmu_index(self, x):
         diff = [np.linalg.norm(x - w) for w in self.weights]
@@ -144,7 +148,7 @@ class SOM():
 
 class OnlineRegression():
 
-    def __init__(self, dimensions = 53, alpha0 = 0.2):
+    def __init__(self, dimensions = 53, alpha0 = 0.2, t_r = 100):
         self.name = 'online_regression'
         self.dimensions = dimensions
         self.alpha0 = alpha0
@@ -152,6 +156,7 @@ class OnlineRegression():
         self.Js = []
         self.t = 0
         self.alpha_t = self.alpha0
+        self.t_r = float(t_r)
 
     def get_mean_err(self):
         return np.mean(self.Js)
@@ -165,7 +170,7 @@ class OnlineRegression():
         self.Js.append(J)
         dJdW = np.matmul(self.W, np.matmul(x_s, x_s.T)) - np.matmul(y_s, x_s.T)
         self.W -= self.alpha_t * dJdW
-        alpha_t = self.alpha0*100/(self.t+100)
+        alpha_t = self.alpha0*self.t_r/(self.t+self.t_r)
         self.t += 1
         return J
 
