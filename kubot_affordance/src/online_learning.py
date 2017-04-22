@@ -29,7 +29,9 @@ def main():
                         break
                     else:
                         is_first = False
-                        affordance_core.robot.arm.go_prev_pose()
+                        is_moved = -1
+                        while is_moved == -1:
+                            is_moved = affordance_core.robot.arm.go_prev_pose()
             except IterationError as e:
                 rospy.loginfo(e.message)
                 continue
