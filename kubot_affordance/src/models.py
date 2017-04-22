@@ -1,14 +1,14 @@
 import numpy as np
 import math
 import pickle
-from sklearn.preprocessing import minmax_scale
+from copy import deepcopy
 
 class ActionModel():
     def __init__(self, action, run_id,
                  feature_size=51,models_path='/home/cem/learning/models/',
-                 epsilon_o=0.01, epsilon_r=0.05, epsilon_e=0.014,
-                 alpha_o=0.2, alpha_e=0.2, alpha_r=0.5, d_o=0.005, d_e=0.0075,
-                 t_alpha=100.0, t_d=10.0, t_r=100.0):
+                 epsilon_o=0.4, epsilon_r=0.0005, epsilon_e=0.08,
+                 alpha_o=0.2, alpha_e=0.1, alpha_r=0.2, d_o=0.2, d_e=0.03,
+                 t_alpha=1000.0, t_d=1000.0, t_r=1000.0):
         self.action = action
         self.feature_size = feature_size
         self.epsilon_o = epsilon_o
@@ -22,8 +22,8 @@ class ActionModel():
         self.t_r = t_r # Decay rate of alpha of regression
         self.d_o = d_o
         self.d_e = d_e
-        self.object_som = SOM(feature_size=self.feature_size,alpha0=self.alpha_o, d0=self.d_o, t_alpha=self.t_alpha, t_d=self.t_d)
-        self.effect_som = SOM(feature_size=self.feature_size,alpha0=self.alpha_e, d0=self.d_e, t_alpha=self.t_alpha, t_d=self.t_d)
+        self.object_som = SOM(feature_size=self.feature_size-3,alpha0=self.alpha_o, d0=self.d_o, t_alpha=self.t_alpha, t_d=self.t_d)
+        self.effect_som = SOM(feature_size=3,alpha0=self.alpha_e, d0=self.d_e, t_alpha=self.t_alpha, t_d=self.t_d)
         self.obj_model_map = {}
         self.models_path = models_path
         self.run_id = run_id
@@ -31,57 +31,47 @@ class ActionModel():
         self.e_som_path = '%s_effect_som_%d.pkl' % (self.path, self.run_id)
         self.b_som_path = '%s_before_som_%d.pkl' % (self.path, self.run_id)
         self.map_path = '%s_map_%d.pkl' % (self.path, self.run_id)
+        self.before_scaler_path = '%s_before_scaler.pkl' % (self.path)
+        self.effect_scaler_path = '%s_effect_scaler.pkl' % (self.path)
 
     def load(self):
         self.effect_som = pickle.load(open(self.e_som_path, "rb"))
         self.object_som = pickle.load(open(self.b_som_path, "rb"))
         self.obj_model_map = pickle.load(open(self.map_path, "rb"))
 
-    def scale(self, features):
-        f_s = minmax_scale(features)
-        position = f_s[0:3]
-        others = f_s[3:self.feature_size]
-        others = np.multiply(others, 0.01)
-        new_feats = np.append(position, others)
-        return new_feats
+    def load_scalers(self):
+        self.before_scaler = pickle.load(open(self.before_scaler_path, "rb"))
+        self.effect_scaler = pickle.load(open(self.effect_scaler_path, "rb"))
 
     def update(self, before_feats, after_feats,is_gone):
-        x_s = self.scale(before_feats)
+        x_s = self.action.before_scaler.transform(before_feats.reshape(1,-1)).flatten()[3:51]
         if not is_gone:
             y = np.absolute(np.subtract(after_feats, before_feats))
-            y_s = self.scale(y)
+            y_s = self.action.effect_scaler.transform(y.reshape(1,-1)).flatten()[0:3]
         else:
-            y_s = np.array([-1.0] * self.feature_size)
-        o_min_distance = self.object_som.get_min_distance(x_s)
-        print "Before som min distance:", o_min_distance
-        if o_min_distance > self.epsilon_o or o_min_distance == -1:
-            self.object_som.add_neuron(x_s)
-        else:
-            self.object_som.update(x_s)
+            y_s = self.action.effect_scaler.transform(before_feats.reshape(1,-1)).flatten()[0:3]
 
-        cid = self.object_som.winner(x_s)
-        if cid not in self.obj_model_map:
-            self.obj_model_map[cid] = OnlineRegression(dimensions=self.feature_size+1,alpha0=self.alpha_r,t_r=self.t_r)
+        o_min_distance = self.object_som.get_min_distance(x_s)
+        if o_min_distance > self.epsilon_o or o_min_distance == -1:
+            new_cid = self.object_som.add_neuron(x_s)
+            self.obj_model_map[new_cid] = OnlineRegression(alpha0=self.alpha_r, t_r=self.t_r)
+
+        self.object_som.update(x_s)
         print "Picked regression model:", cid
         regressor = self.obj_model_map[cid]
-        if len(regressor.Js) >= 1:
-            old_mean = regressor.get_mean_err()
-        else:
-            old_mean = 0
         J = regressor.update(x_s, y_s)
+
         e_min_distance = self.effect_som.get_min_distance(y_s)
-        print "Effect som min distance:", e_min_distance
         if e_min_distance == -1 or e_min_distance > self.epsilon_e:
             self.effect_som.add_neuron(y_s)
-        else:
-            self.effect_som.update(y_s)
+
+        self.effect_som.update(y_s)
 
         print "Effect som winner:", self.effect_som.winner(y_s)
         print "Before som #neurons:", len(self.object_som.weights)
         print "Effect som #neurons:", len(self.effect_som.weights)
-        new_mean = regressor.get_mean_err()
-        print "Mean J:", new_mean
-        if J < self.epsilon_r and new_mean < old_mean:
+
+        if J < self.epsilon_r:
             return True
         return False
 
@@ -149,29 +139,30 @@ class SOM():
 
 class OnlineRegression():
 
-    def __init__(self, dimensions = 53, alpha0 = 0.2, t_r = 100):
+    def __init__(self, dimensions = (3,52), alpha0 = 0.2, t_r = 100):
         self.name = 'online_regression'
         self.dimensions = dimensions
         self.alpha0 = alpha0
         self.W = np.random.rand(self.dimensions, self.dimensions)
         self.Js = []
         self.t = 0
-        self.alpha_t = self.alpha0
         self.t_r = float(t_r)
 
     def get_mean_err(self):
         return np.mean(self.Js)
 
+    def decay_alpha(self):
+        return self.alpha0 * np.exp(-1 * (float(self.t) / float(self.t_r)))
+
     def update(self, x, y):
         x_s = self.__preproc_x(x)
         y_s = y[np.newaxis].T
-        y_s = np.vstack([y_s, [0.0]])
+        #y_s = np.vstack([y_s, [0.0]])
         J = self.get_square_error(x_s, y_s) / 2
         print J
         self.Js.append(J)
         dJdW = np.matmul(self.W, np.matmul(x_s, x_s.T)) - np.matmul(y_s, x_s.T)
-        self.W -= self.alpha_t * dJdW
-        alpha_t = self.alpha0*self.t_r/(self.t+self.t_r)
+        self.W -= self.decay_alpha() * dJdW
         self.t += 1
         return J
 
@@ -181,22 +172,9 @@ class OnlineRegression():
 
     def predict(self, x):
         x_s = self.__preproc_x(x)
-        return np.delete(np.matmul(self.W, x_s), self.dimensions-1, 0)
+        return np.matmul(self.W, x_s).flatten()
 
     def __preproc_x(self, x):
         x_s = x[np.newaxis].T
         x_s = np.vstack([x_s, [1.0]])
         return x_s
-
-    def get_rmse(self, X, y):
-        total = 0.0
-        c = 0.0
-        for i in range(len(X)):
-            x = X[i]
-            y_s = y[i][np.newaxis].T
-            y_predicted = self.predict(x)
-            a = y_s - y_predicted
-            err = np.matmul(a.T, a)[0][0]
-            total += err
-            c += 1.0
-        return math.sqrt(total / c)

@@ -28,6 +28,7 @@ class AffordanceCore:
         self.push = Push(self.robot)
         self.actions = [self.push]
         self.action_models = [ActionModel(self.push, self.run_id)]
+        self.load_scalers()
 
         self.pcd_topic = '/camera/points'
         self.pcd_base_path = '/media/cem/ROSDATA/ros_data/pcd/'
@@ -42,6 +43,9 @@ class AffordanceCore:
 
         self.feature_size = feature_size
 
+    def load_scalers(self):
+        for am in self.action_models:
+            am.load_scalers()
 
     def prepare_action_random(self, obj, action_model):
         self.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
@@ -95,7 +99,7 @@ class AffordanceCore:
         if should_save:
             self.save_data(before_feats,obj,action_model.action,0)
             if is_gone:
-                after_feats = [-1.0] * self.feature_size
+                after_feats = [0.0] * self.feature_size
             self.save_data(after_feats,obj,action_model.action,1)
         rospy.sleep(0.5)
         obj.remove()
@@ -134,7 +138,7 @@ class AffordanceCore:
         return np.array(pc_features_to_array(msg)[1])
 
     def save_features(self,features,obj,action,status): #obj_name/csv/iteration_num/
-        csv_path = '%s/new2/%d/%s/%s/%d/' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num)
+        csv_path = '%s/new3/%d/%s/%s/%d/' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num)
         if not os.path.exists(csv_path):
             os.makedirs(csv_path)
         csv_path += '%d.csv' % (status)
