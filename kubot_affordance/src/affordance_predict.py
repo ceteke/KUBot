@@ -10,7 +10,7 @@ import numpy as np
 def main():
     rospy.init_node('kubot_predictor', anonymous=True)
     object_handler = ObjectHandler()
-    affordance_core = AffordanceCore(object_handler,run_id=626)
+    affordance_core = AffordanceCore(object_handler,run_id=648)
     affordance_core.load_models()
     va = VoiceAssistant()
     va.start()
@@ -25,10 +25,10 @@ def main():
             if after_feats is not None:
                 y_actual = np.absolute(np.subtract(after_feats, before_feats))
             else:
-                y_actual = [-1.0] * 51
-            a = np.subtract(y_actual, y_predicted)
-            err = np.matmul(a.T, a)[0][0]
-            print err / 2
+                y_actual = before_feats
+            y_actual = action_model.effect_scaler.transform(y_actual.reshape(1, -1)).flatten()[0:3]
+            print y_predicted
+            print y_actual
         except IterationError as e:
             rospy.loginfo(e.message)
             continue

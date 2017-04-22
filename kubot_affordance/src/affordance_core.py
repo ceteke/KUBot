@@ -138,7 +138,7 @@ class AffordanceCore:
         return np.array(pc_features_to_array(msg)[1])
 
     def save_features(self,features,obj,action,status): #obj_name/csv/iteration_num/
-        csv_path = '%s/new4/%d/%s/%s/%d/' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num)
+        csv_path = '%s/new6/%d/%s/%s/%d/' % (self.features_base_path, self.run_id, action.name, obj.name, self.iteration_num)
         if not os.path.exists(csv_path):
             os.makedirs(csv_path)
         csv_path += '%d.csv' % (status)

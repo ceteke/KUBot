@@ -6,7 +6,7 @@ from copy import deepcopy
 class ActionModel():
     def __init__(self, action, run_id,
                  feature_size=51,models_path='/home/cem/learning/models/',
-                 epsilon_o=0.4, epsilon_r=0.0005, epsilon_e=0.08,
+                 epsilon_o=0.5, epsilon_r=0.02, epsilon_e=0.08,
                  alpha_o=0.2, alpha_e=0.1, alpha_r=0.2, d_o=0.2, d_e=0.03,
                  t_alpha=1000.0, t_d=1000.0, t_r=1000.0):
         self.action = action
@@ -44,45 +44,54 @@ class ActionModel():
         self.effect_scaler = pickle.load(open(self.effect_scaler_path, "rb"))
 
     def update(self, before_feats, after_feats,is_gone):
-        x_s = self.before_scaler.transform(before_feats.reshape(1,-1)).flatten()[3:51]
+        x_s = self.before_scaler.transform(before_feats.reshape(1,-1)).flatten()
+        x_s_h = x_s[6:51]
+        x_s_p = x_s[0:3]
         if not is_gone:
             y = np.absolute(np.subtract(after_feats, before_feats))
             y_s = self.effect_scaler.transform(y.reshape(1,-1)).flatten()[0:3]
         else:
             y_s = self.effect_scaler.transform(before_feats.reshape(1,-1)).flatten()[0:3]
 
-        o_min_distance = self.object_som.get_min_distance(x_s)
+        o_min_distance = self.object_som.get_min_distance(x_s_h)
+        print "omin", o_min_distance
         if o_min_distance > self.epsilon_o or o_min_distance == -1:
-            new_cid = self.object_som.add_neuron(x_s)
+            new_cid = self.object_som.add_neuron(x_s_h)
             self.obj_model_map[new_cid] = OnlineRegression(alpha0=self.alpha_r, t_r=self.t_r)
 
-        o_cid = self.object_som.update(x_s)
-        print "Picked regression model:",o_cid
+        o_cid = self.object_som.update(x_s_h)
         regressor = self.obj_model_map[o_cid]
-        J = regressor.update(x_s, y_s)
-
+        y_predicted = regressor.predict(x_s_p)
+        print y_s
+        print y_predicted
+        dist = np.linalg.norm(y_s-y_predicted)
+        print dist
+        if dist < self.epsilon_r:
+            return True
+        regressor.update(x_s_p, y_s)
         e_min_distance = self.effect_som.get_min_distance(y_s)
         if e_min_distance == -1 or e_min_distance > self.epsilon_e:
             self.effect_som.add_neuron(y_s)
 
         e_cid = self.effect_som.update(y_s)
+        print "Picked regression model:", o_cid
         print "Picked effect cluster:", e_cid
 
         print "Effect som winner:", self.effect_som.winner(y_s)
         print "Before som #neurons:", len(self.object_som.weights)
         print "Effect som #neurons:", len(self.effect_som.weights)
 
-        if J < self.epsilon_r:
-            return True
         return False
 
     def predict(self, before_feats):
-        x_s = self.scale(before_feats)
-        obj_cid = self.object_som.winner(x_s)
+        x_s = self.before_scaler.transform(before_feats.reshape(1,-1)).flatten()
+        x_s_h = x_s[6:51]
+        x_s_p = x_s[0:3]
+        obj_cid = self.object_som.winner(x_s_h)
         print "Object cid:", obj_cid
         gd = self.obj_model_map[obj_cid]
-        y_predicted = gd.predict(x_s)
-        effect_id = self.effect_som.winner(y_predicted.flatten())
+        y_predicted = gd.predict(x_s_p)
+        effect_id = self.effect_som.winner(y_predicted)
         return effect_id, y_predicted
 
     def save(self):
@@ -141,7 +150,7 @@ class SOM():
 
 class OnlineRegression():
 
-    def __init__(self, dimensions = (3,49), alpha0 = 0.2, t_r = 100):
+    def __init__(self, dimensions = (3,4), alpha0 = 0.2, t_r = 100):
         self.name = 'online_regression'
         self.dimensions = dimensions
         self.alpha0 = alpha0
@@ -161,7 +170,7 @@ class OnlineRegression():
         y_s = y[np.newaxis].T
         #y_s = np.vstack([y_s, [0.0]])
         J = self.get_square_error(x_s, y_s) / 2
-        print J
+        #print J
         self.Js.append(J)
         dJdW = np.matmul(self.W, np.matmul(x_s, x_s.T)) - np.matmul(y_s, x_s.T)
         self.W -= self.decay_alpha() * dJdW
