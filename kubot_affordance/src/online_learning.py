@@ -19,6 +19,7 @@ def main():
                 obj = object_handler.pick_random_object()
                 obj_pose = object_handler.get_random_object_pose()
                 action_model = affordance_core.get_random_action_model()
+                is_first = True
                 while True:
                     before_feats = affordance_core.prepare_action(obj, action_model, obj_pose, is_first)
                     is_learned, after_feats = affordance_core.execute_action(before_feats,action_model, obj, True, True)
@@ -27,6 +28,7 @@ def main():
                         rospy.loginfo("=================Boring=============")
                         break
                     else:
+                        is_first = False
                         affordance_core.robot.arm.go_prev_pose()
             except IterationError as e:
                 rospy.loginfo(e.message)

@@ -44,28 +44,29 @@ class ActionModel():
         self.effect_scaler = pickle.load(open(self.effect_scaler_path, "rb"))
 
     def update(self, before_feats, after_feats,is_gone):
-        x_s = self.action.before_scaler.transform(before_feats.reshape(1,-1)).flatten()[3:51]
+        x_s = self.before_scaler.transform(before_feats.reshape(1,-1)).flatten()[3:51]
         if not is_gone:
             y = np.absolute(np.subtract(after_feats, before_feats))
-            y_s = self.action.effect_scaler.transform(y.reshape(1,-1)).flatten()[0:3]
+            y_s = self.effect_scaler.transform(y.reshape(1,-1)).flatten()[0:3]
         else:
-            y_s = self.action.effect_scaler.transform(before_feats.reshape(1,-1)).flatten()[0:3]
+            y_s = self.effect_scaler.transform(before_feats.reshape(1,-1)).flatten()[0:3]
 
         o_min_distance = self.object_som.get_min_distance(x_s)
         if o_min_distance > self.epsilon_o or o_min_distance == -1:
             new_cid = self.object_som.add_neuron(x_s)
             self.obj_model_map[new_cid] = OnlineRegression(alpha0=self.alpha_r, t_r=self.t_r)
 
-        self.object_som.update(x_s)
-        print "Picked regression model:", cid
-        regressor = self.obj_model_map[cid]
+        o_cid = self.object_som.update(x_s)
+        print "Picked regression model:",o_cid
+        regressor = self.obj_model_map[o_cid]
         J = regressor.update(x_s, y_s)
 
         e_min_distance = self.effect_som.get_min_distance(y_s)
         if e_min_distance == -1 or e_min_distance > self.epsilon_e:
             self.effect_som.add_neuron(y_s)
 
-        self.effect_som.update(y_s)
+        e_cid = self.effect_som.update(y_s)
+        print "Picked effect cluster:", e_cid
 
         print "Effect som winner:", self.effect_som.winner(y_s)
         print "Before som #neurons:", len(self.object_som.weights)
@@ -136,14 +137,15 @@ class SOM():
             neighborhood = self.neighborhood(j, i)
             self.weights[j] = self.weights[j] + self.decay_alpha() * neighborhood * (x - self.weights[j])
         self.t += 1
+        return i
 
 class OnlineRegression():
 
-    def __init__(self, dimensions = (3,52), alpha0 = 0.2, t_r = 100):
+    def __init__(self, dimensions = (3,49), alpha0 = 0.2, t_r = 100):
         self.name = 'online_regression'
         self.dimensions = dimensions
         self.alpha0 = alpha0
-        self.W = np.random.rand(self.dimensions, self.dimensions)
+        self.W = np.random.rand(self.dimensions[0], self.dimensions[1])
         self.Js = []
         self.t = 0
         self.t_r = float(t_r)
