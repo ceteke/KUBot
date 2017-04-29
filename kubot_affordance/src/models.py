@@ -2,102 +2,88 @@ import numpy as np
 import math
 import pickle
 from copy import deepcopy
+from keras.models import load_model
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
 
 class ActionModel():
     def __init__(self, action, run_id,
                  feature_size=51,models_path='/home/cem/learning/models/',
-                 epsilon_o=0.5, epsilon_r=0.02, epsilon_e=0.08,
-                 alpha_o=0.2, alpha_e=0.1, alpha_r=0.2, d_o=0.2, d_e=0.03,
-                 t_alpha=1000.0, t_d=1000.0, t_r=1000.0):
+                 epsilon_r=0.01, epsilon_e=0.08,
+                 alpha_e=0.1, d_e=0.03,
+                 t_alpha=100.0, t_d=100.0):
         self.action = action
         self.feature_size = feature_size
-        self.epsilon_o = epsilon_o
         self.epsilon_r = epsilon_r
         self.epsilon_e = epsilon_e
-        self.alpha_o = alpha_o
         self.alpha_e = alpha_e
-        self.alpha_r = alpha_r
         self.t_alpha = t_alpha #Decay rate of alpha of SOM
         self.t_d = t_d # Decay rate of d of SOM
-        self.t_r = t_r # Decay rate of alpha of regression
-        self.d_o = d_o
         self.d_e = d_e
-        self.object_som = SOM(feature_size=self.feature_size-3,alpha0=self.alpha_o, d0=self.d_o, t_alpha=self.t_alpha, t_d=self.t_d)
+        self.nn = None
         self.effect_som = SOM(feature_size=3,alpha0=self.alpha_e, d0=self.d_e, t_alpha=self.t_alpha, t_d=self.t_d)
-        self.obj_model_map = {}
         self.models_path = models_path
         self.run_id = run_id
         self.path = '%s%s' % (self.models_path, self.action.name)
         self.e_som_path = '%s_effect_som_%d.pkl' % (self.path, self.run_id)
-        self.b_som_path = '%s_before_som_%d.pkl' % (self.path, self.run_id)
-        self.map_path = '%s_map_%d.pkl' % (self.path, self.run_id)
-        self.before_scaler_path = '%s_before_scaler.pkl' % (self.path)
-        self.effect_scaler_path = '%s_effect_scaler.pkl' % (self.path)
+        self.nn_path = '%s_nn_%d.h5' % (self.path, self.run_id)
+        self.before_scaler_path = '%sobject_scaler.pkl' % (self.models_path)
+        self.effect_scaler_path = '%seffect_scaler.pkl' % (self.models_path)
 
     def load(self):
         self.effect_som = pickle.load(open(self.e_som_path, "rb"))
-        self.object_som = pickle.load(open(self.b_som_path, "rb"))
-        self.obj_model_map = pickle.load(open(self.map_path, "rb"))
+        self.nn = load_model(self.nn_path)
 
     def load_scalers(self):
         self.before_scaler = pickle.load(open(self.before_scaler_path, "rb"))
         self.effect_scaler = pickle.load(open(self.effect_scaler_path, "rb"))
 
+    def init_models(self):
+        self.nn = Sequential()
+        self.nn.add(Dense(128, input_dim=51, activation='relu'))
+        self.nn.add(Dense(128, activation='relu'))
+        self.nn.add(Dense(64, activation='relu'))
+        self.nn.add(Dense(3, activation='relu'))
+        self.nn.compile(loss='mean_absolute_error', optimizer='adagrad')
+
     def update(self, before_feats, after_feats,is_gone):
         x_s = self.before_scaler.transform(before_feats.reshape(1,-1)).flatten()
-        x_s_h = x_s[6:51]
-        x_s_p = x_s[0:3]
         if not is_gone:
             y = np.absolute(np.subtract(after_feats, before_feats))
             y_s = self.effect_scaler.transform(y.reshape(1,-1)).flatten()[0:3]
         else:
             y_s = self.effect_scaler.transform(before_feats.reshape(1,-1)).flatten()[0:3]
 
-        o_min_distance = self.object_som.get_min_distance(x_s_h)
-        print "omin", o_min_distance
-        if o_min_distance > self.epsilon_o or o_min_distance == -1:
-            new_cid = self.object_som.add_neuron(x_s_h)
-            self.obj_model_map[new_cid] = OnlineRegression(alpha0=self.alpha_r, t_r=self.t_r)
+        y_predicted = self.nn.predict(x_s.reshape(1,-1))
 
-        o_cid = self.object_som.update(x_s_h)
-        regressor = self.obj_model_map[o_cid]
-        y_predicted = regressor.predict(x_s_p)
-        print y_s
-        print y_predicted
         dist = np.linalg.norm(y_s-y_predicted)
-        print dist
+        print "Prediction Error:", dist
+
         if dist < self.epsilon_r:
             return True
-        regressor.update(x_s_p, y_s)
+
+        self.nn.fit(x_s.reshape(1,-1), y_s.reshape(1,-1), batch_size=1, epochs=10, verbose=0)
+
         e_min_distance = self.effect_som.get_min_distance(y_s)
         if e_min_distance == -1 or e_min_distance > self.epsilon_e:
-            self.effect_som.add_neuron(y_s)
+            e_cid = self.effect_som.add_neuron(y_s)
+        else:
+            e_cid = self.effect_som.update(y_s)
 
-        e_cid = self.effect_som.update(y_s)
-        print "Picked regression model:", o_cid
-        print "Picked effect cluster:", e_cid
-
-        print "Effect som winner:", self.effect_som.winner(y_s)
-        print "Before som #neurons:", len(self.object_som.weights)
+        print "Effect som cluster:", e_cid
         print "Effect som #neurons:", len(self.effect_som.weights)
 
         return False
 
     def predict(self, before_feats):
         x_s = self.before_scaler.transform(before_feats.reshape(1,-1)).flatten()
-        x_s_h = x_s[6:51]
-        x_s_p = x_s[0:3]
-        obj_cid = self.object_som.winner(x_s_h)
-        print "Object cid:", obj_cid
-        gd = self.obj_model_map[obj_cid]
-        y_predicted = gd.predict(x_s_p)
+        y_predicted = self.nn.predict(x_s.reshape(1,-1)).flatten()
         effect_id = self.effect_som.winner(y_predicted)
         return effect_id, y_predicted
 
     def save(self):
         pickle.dump(self.effect_som, open(self.e_som_path, "wb"))
-        pickle.dump(self.object_som, open(self.b_som_path, "wb"))
-        pickle.dump(self.obj_model_map, open(self.map_path, "wb"))
+        self.nn.save(self.nn_path)
 
 class SOM():
 

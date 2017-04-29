@@ -10,7 +10,7 @@ import numpy as np
 def main():
     rospy.init_node('kubot_predictor', anonymous=True)
     object_handler = ObjectHandler()
-    affordance_core = AffordanceCore(object_handler,run_id=648)
+    affordance_core = AffordanceCore(object_handler,run_id=0)
     affordance_core.load_models()
     va = VoiceAssistant()
     va.start()

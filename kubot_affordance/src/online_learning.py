@@ -11,6 +11,7 @@ def main():
     object_handler = ObjectHandler()
     affordance_core = AffordanceCore(object_handler)
     #affordance_core.load_models()
+    affordance_core.init_models()
     try:
         while True:
             affordance_core.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
