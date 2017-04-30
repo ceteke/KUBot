@@ -43,13 +43,19 @@ class AffordanceCore:
 
         self.feature_size = feature_size
 
+        self.clusters = {0: "Stay", 1:"Roll", 6: "Roll", 5:"Drop", 9:"Drop"}
+
+    def get_cluster_label(self, cid):
+        return self.clusters[cid]
+
     def load_scalers(self):
         for am in self.action_models:
             am.load_scalers()
 
-    def prepare_action_random(self, obj, action_model):
-        self.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
-        rospy.sleep(5)
+    def prepare_action_random(self, obj, action_model, is_gui=False):
+        if not is_gui:
+            self.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
+            rospy.sleep(5)
         obj.set_position(self.object_handler.get_random_object_pose())
         obj.place_on_table()
         return self.move_to_object(obj, action_model, True)

@@ -11,13 +11,19 @@ class ObjectHandler:
         self.sphere = Sphere()
         self.hcylinder = Cylinder('h')
         self.vcylinder = Cylinder('v')
-
+        self.default_pose = Pose()
+        self.default_pose.position.x = 0.0
+        self.default_pose.position.y = 0.0
+        self.default_pose.position.z = 0.8
         self.objects = [self.box, self.sphere, self.vcylinder, self.hcylinder]
 
     def pick_random_object(self):
         i = randint(0,len(self.objects)-1)
         obj = self.objects[i]
         return obj
+
+    def get_object(self, oid):
+        return next((x for x in self.objects if x.name == oid), None)
 
     def get_random_object_pose(self):
         pos = Pose()

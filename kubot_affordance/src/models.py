@@ -56,13 +56,13 @@ class ActionModel():
 
         y_predicted = self.nn.predict(x_s.reshape(1,-1))
 
-        dist = np.linalg.norm(y_s-y_predicted)
-        print "Prediction Error:", dist
+        hist = self.nn.fit(x_s.reshape(1,-1), y_s.reshape(1,-1), batch_size=1, epochs=10, verbose=0)
+        losses = hist.history['loss']
+        loss = losses[len(losses)-1]
+        print "Training loss:", loss
 
-        if dist < self.epsilon_r:
+        if loss < self.epsilon_r:
             return True
-
-        self.nn.fit(x_s.reshape(1,-1), y_s.reshape(1,-1), batch_size=1, epochs=10, verbose=0)
 
         e_min_distance = self.effect_som.get_min_distance(y_s)
         if e_min_distance == -1 or e_min_distance > self.epsilon_e:
