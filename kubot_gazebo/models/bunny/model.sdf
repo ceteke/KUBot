@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="bunny">
+    <static>false</static>
+    <link name="link">
+      <pose>0 0 0 0 0 0</pose>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://bunny/meshes/textured_bunny_ml.dae</uri>
+            <scale>0.3 0.3 0.3</scale>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://bunny/meshes/textured_bunny_ml.dae</uri>
+            <scale>0.3 0.3 0.3</scale>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>1 0 0 1</ambient>
+          <diffuse>1 0 0 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <emissive>0 0 0 0</emissive>
+        </material>
+      </visual>
+      <inertial>
+        <origin xyz="0 0 0" />
+        <mass value="0.01"/>
+        <inertia ixx="0.00001667" ixy="0.0" ixz="0.0" iyy="0.00001667" iyz="0.0" izz="0.00001667"/>
+      </inertial>
+    </link>
+  </model>
+</sdf>

@@ -19,9 +19,10 @@ def prediction(obj, object_handler, affordance_core, va, is_random=False):
         e, y_predicted = action_model.predict(before_feats)
         print "Effect cid:", e
         try:
-            va.add_say("I predict this object will, %s" % (affordance_core.get_cluster_label(e)))
+            label = affordance_core.get_cluster_label(e)
+            va.add_say("I predict this object will, %s" % (label))
         except KeyError:
-            va.add_say("Sorry, you humans can not understand.")
+            va.add_say("You humans do not understand.")
         is_learned, after_feats = affordance_core.execute_action(before_feats,action_model, obj, False, False)
         if after_feats is not None:
             y_actual = np.absolute(np.subtract(after_feats, before_feats))
@@ -37,6 +38,7 @@ def prediction(obj, object_handler, affordance_core, va, is_random=False):
         affordance_core.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
     except IterationError:
         va.add_say("Sorry :(")
+        affordance_core.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
 
 def randomCallback(object_handler, affordance_core, va):
     obj = object_handler.pick_random_object()
@@ -59,7 +61,7 @@ def goObjectCallback(var, object_handler, affordance_core, va):
     prediction(obj, object_handler, affordance_core, va)
 
 def main():
-    rospy.init_node('kubot_gui', anonymous=True)
+    rospy.init_node('kubot_gui')
     object_handler = ObjectHandler()
     affordance_core = AffordanceCore(object_handler,run_id=0)
     affordance_core.load_models()
@@ -74,7 +76,7 @@ def main():
     var = Tkinter.StringVar(top)
     # initial value
     var.set('box')
-    choices = ['box', 'sphere', 'hcylinder', 'vcylinder']
+    choices = ['box', 'sphere', 'hcylinder', 'vcylinder', 'duck', 'bunny']
     option = Tkinter.OptionMenu(top, var, *choices)
     option.pack(side='left', padx=10, pady=10)
 

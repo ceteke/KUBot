@@ -3,21 +3,28 @@ import rospkg
 from geometry_msgs.msg import Pose, Twist, Quaternion
 
 class MyObject(object):
-    def __init__(self,name,urdf_file,orientation=None):
+    def __init__(self,name,urdf_file,orientation=None,is_sdf=False):
         self.name = name
         self.gazebo_interface = GazeboInterface()
         self.rospack = rospkg.RosPack()
         self.object_path = self.rospack.get_path('kubot_gazebo')+"/objects/"
+        if is_sdf:
+            self.model_path = self.rospack.get_path('kubot_gazebo')+"/models/"+self.name+"/model.sdf"
         self.urdf_file = urdf_file
         self.invisible_pose = Pose()
         self.invisible_pose.position.x = -100
         self.invisible_pose.position.y = -100
         self.invisible_pose.position.z = -100
         self.orientation = orientation
+        self.is_sdf = is_sdf
         if orientation is not None:
             self.invisible_pose.orientation = self.orientation
-        self.gazebo_interface.spawn_object(self.object_path+self.urdf_file,
-                                            self.name, self.invisible_pose)
+        if not is_sdf:
+            self.gazebo_interface.spawn_object(self.object_path+self.urdf_file,
+                                            self.name, self.invisible_pose,self.is_sdf)
+        else:
+            self.gazebo_interface.spawn_object(self.model_path,
+                                            self.name, self.invisible_pose,self.is_sdf)
 
     def place_on_table(self):
         return self.gazebo_interface.set_object_pose(self.name,self.pose,twist=self.twist)
@@ -38,6 +45,14 @@ class Sphere(MyObject):
 class Box(MyObject):
     def __init__(self):
         MyObject.__init__(self,'box','basic_cube.urdf')
+
+class Duck(MyObject):
+    def __init__(self):
+        MyObject.__init__(self,'duck',None, is_sdf=True)
+
+class Bunny(MyObject):
+    def __init__(self):
+        MyObject.__init__(self,'bunny',None, is_sdf=True)
 
 class Cylinder(MyObject):
     def __init__(self,type):

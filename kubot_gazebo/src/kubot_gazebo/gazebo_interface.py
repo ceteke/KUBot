@@ -8,6 +8,7 @@ class GazeboInterface:
         self.model_state_service = sim_context+'/get_model_state'
         self.delete_object_service = sim_context+'/delete_model'
         self.spawn_object_service = sim_context+'/spawn_urdf_model'
+        self.spawn_service = sim_context+'/spawn_sdf_model'
         self.set_object_state_service = sim_context + '/set_model_state'
 
     def get_object_pose(self,object_name,return_twist = False):
@@ -45,10 +46,13 @@ class GazeboInterface:
             return False
         return True
 
-    def spawn_object(self,file_name, object_name, desired_pose):
+    def spawn_object(self,file_name, object_name, desired_pose, is_sdf):
         rospy.wait_for_service(self.spawn_object_service)
         try:
-            so = rospy.ServiceProxy(self.spawn_object_service, SpawnModel)
+            if not is_sdf:
+                so = rospy.ServiceProxy(self.spawn_object_service, SpawnModel)
+            else:
+                so = rospy.ServiceProxy(self.spawn_service, SpawnModel)
             soReq = SpawnModelRequest()
             soReq.model_name = object_name
             f = open(file_name,'r')
