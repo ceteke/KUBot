@@ -38,6 +38,9 @@ class MyObject(object):
             self.pose.orientation = self.orientation
         self.twist = twist
 
+    def get_position(self):
+        return self.gazebo_interface.get_object_pose(self.name)
+
 class Sphere(MyObject):
     def __init__(self):
         MyObject.__init__(self,'sphere','basic_sphere.urdf')

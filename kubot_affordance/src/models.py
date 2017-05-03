@@ -21,7 +21,7 @@ class ActionModel():
         self.t_d = t_d # Decay rate of d of SOM
         self.d_e = d_e
         self.nn = None
-        self.effect_som = SOM(feature_size=3,alpha0=self.alpha_e, d0=self.d_e, t_alpha=self.t_alpha, t_d=self.t_d)
+        self.effect_som = SOM(feature_size=3,alpha0=self.alpha_e, d0=self.d_e, T1=self.t_alpha, T2=self.t_d)
         self.models_path = models_path
         self.run_id = run_id
         self.path = '%s%s' % (self.models_path, self.action.name)
@@ -57,10 +57,8 @@ class ActionModel():
         y_predicted = self.nn.predict(x_s.reshape(1,-1))
 
         hist = self.nn.fit(x_s.reshape(1,-1), y_s.reshape(1,-1), batch_size=1, epochs=10, verbose=0)
-        losses = hist.history['loss']
-        loss = losses[len(losses)-1]
+        loss = hist.history['loss'][-1]
         print "Training loss:", loss
-
         if loss < self.epsilon_r:
             return True
 
@@ -87,11 +85,11 @@ class ActionModel():
 
 class SOM():
 
-    def __init__(self,feature_size=51, alpha0=0.2, d0=0.5, t_alpha=100, t_d=10):
+    def __init__(self,feature_size=51, alpha0=0.2, d0=0.5, T1=1000, T2=100):
         self.alpha0 = alpha0
         self.d0 = d0
-        self.t_alpha = t_alpha
-        self.t_d = t_d
+        self.T1 = T1
+        self.T2 = T2
         self.t = 0
         self.feature_size = feature_size
         self.weights = []
@@ -101,10 +99,10 @@ class SOM():
         return len(self.weights) - 1
 
     def decay_alpha(self):
-        return self.alpha0 * np.exp(-1.0 * (float(self.t) / float(self.t_alpha)))
+        return self.alpha0 * np.exp(-1.0 * (float(self.t) / float(self.T1)))
 
     def decay_d(self):
-        return self.d0 * np.exp(-1.0 * (float(self.t) / float(self.t_d)))
+        return self.d0 * np.exp(-1.0 * (float(self.t) / float(self.T2)))
 
     def get_bmu_index(self, x):
         diff = [np.linalg.norm(x - w) for w in self.weights]

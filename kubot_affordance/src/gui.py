@@ -15,7 +15,7 @@ def prediction(obj, object_handler, affordance_core, va, is_random=False):
         if is_random:
             before_feats = affordance_core.prepare_action_random(obj, action_model, is_gui=True)
         else:
-            before_feats = affordance_core.move_to_object(obj, action_model, True)
+            before_feats = affordance_core.prepare_action(obj, action_model, obj.get_position(), True)
         e, y_predicted = action_model.predict(before_feats)
         print "Effect cid:", e
         try:
@@ -32,13 +32,24 @@ def prediction(obj, object_handler, affordance_core, va, is_random=False):
         print y_predicted
         print y_actual
         dist = np.linalg.norm(y_predicted-y_actual)
-        if dist > 0.07:
-            va.add_say("Fuck!")
         print dist
+        is_learned = dist < 0.07
+        while not is_learned:
+            is_learned = intrinsic_update(affordance_core, obj, action_model)
         affordance_core.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
-    except IterationError:
+    except IterationError as e:
         va.add_say("Sorry :(")
+        rospy.loginfo(e.message)
         affordance_core.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
+
+def intrinsic_update(affordance_core, obj, action_model):
+    is_moved = -1
+    while is_moved == -1:
+        is_moved = affordance_core.robot.arm.go_prev_pose()
+    obj.place_on_table()
+    before_feats = affordance_core.move_to_object(obj, action_model, False)
+    is_learned, after_feats = affordance_core.execute_action(before_feats,action_model,obj, False, True)
+    return is_learned
 
 def randomCallback(object_handler, affordance_core, va):
     obj = object_handler.pick_random_object()
@@ -65,6 +76,7 @@ def main():
     object_handler = ObjectHandler()
     affordance_core = AffordanceCore(object_handler,run_id=0)
     affordance_core.load_models()
+    affordance_core.load_scalers()
     va = VoiceAssistant()
     va.start()
     affordance_core.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
