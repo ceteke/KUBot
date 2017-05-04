@@ -29,6 +29,9 @@ class GUI():
         self.g_button = Tkinter.Button(self.top, text="Go!", command=lambda: self.goObjectCallback(self.var))
         self.g_button.pack(side='left', padx=20, pady=10)
 
+        self.status = Tkinter.Label(self.top, text="Hello Everyone")
+        self.status.pack(side="bottom")
+
         self.top.mainloop()
 
     def prediction(self, obj, is_random=False):
@@ -64,6 +67,18 @@ class GUI():
             obj.remove()
             return
         after_feats = ex_rsp.after_feats
+        y_actual = np.absolute(np.array(after_feats)-np.array(before_feats))
+
+        err_sp = rospy.ServiceProxy('affordance_node/get_error', GetError)
+        err_rq = GetErrorRequest()
+        err_rq.action = action
+        err_rq.y_actual = y_actual
+        err_rq.y_predicted = y_predicted
+        err_rsp = err_sp(err_rq)
+        err = err_rsp.err
+
+        print err
+
         obj.remove()
 
     def randomCallback(self):

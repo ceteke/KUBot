@@ -59,6 +59,7 @@ add_service_files(
    predict.srv
    execute_action.srv
    goto_object.srv
+   GetError.srv
  )
 
 ## Generate actions in the 'action' folder

@@ -20,6 +20,7 @@ class AffordanceNode():
         s_p = rospy.Service('affordance_node/predict', predict, self.predict)
         s_e = rospy.Service('affordance_node/execute_action', execute_action, self.execute_action)
         s_g = rospy.Service('affordance_node/goto_object', goto_object, self.goto_object)
+        s_g = rospy.Service('affordance_node/get_error', GetError, self.get_error)
 
     def execute_action(self, req):
         action_name = req.action
@@ -61,6 +62,17 @@ class AffordanceNode():
         response = predictResponse()
         response.effect_id = e
         response.y_predicted = y_predicted
+        return response
+
+    def get_error(self, req):
+        action_name = req.action
+        y_actual = np.array(req.y_actual)
+        y_predicted = np.array(req.y_predicted)
+        action_model = next((x for x in self.affordance_core.action_models if x.action.name == action_name), None)
+        y_actual_s = action_model.effect_scaler.transform(y_actual.reshape(1,-1)).flatten()[0:3]
+        err = np.linalg.norm(y_predicted-y_actual_s)
+        response = GetErrorResponse()
+        response.err = err
         return response
 
 def main():
