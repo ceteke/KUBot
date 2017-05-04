@@ -32,13 +32,13 @@ class Push(MyAction):
         orientation.w = 0.686688285098
         MyAction.__init__(self,'push',robot,orientation)
 
-    def prepare(self,before_feats,obj_name):
+    def prepare(self,before_feats):
         pose = self.transformer.transform(self, before_feats)
         pose_clone = deepcopy(pose)
         pose.position.x -= 0.125
         pose.position.y -= 0.075
         obj_size = (before_feats[4] + 0.05, before_feats[5] + 0.05, before_feats[6] + 0.05)
-        return self.robot.arm.go_to_object(pose, obj_name, pose_clone, obj_size)
+        return self.robot.arm.go_to_object(pose, pose_clone, obj_size)
 
     def execute(self):
         start_pose = self.robot.arm.get_current_pose()

@@ -94,12 +94,12 @@ class Arm:
     def go_prev_pose(self):
         return self.go_to_pose(self.prev_pose)
 
-    def go_to_object(self,pose,obj_name,obj_pose,obj_size):
+    def go_to_object(self,pose,obj_pose,obj_size):
         self.scene.remove_world_object()
         obj_pose_stamped = geometry_msgs.msg.PoseStamped()
         obj_pose_stamped.header.frame_id = self.robot.get_planning_frame()
         obj_pose_stamped.pose = obj_pose
-        self.scene.add_box(obj_name, obj_pose_stamped, obj_size)
+        self.scene.add_box('obj_box', obj_pose_stamped, obj_size)
         return self.go_to_pose(pose)
 
     def go_to_pose_cartesian(self,waypoints):

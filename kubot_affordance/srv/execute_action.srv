@@ -1,3 +1,4 @@
 string action
 ---
-float64[] status
+float64[] after_feats
+bool success

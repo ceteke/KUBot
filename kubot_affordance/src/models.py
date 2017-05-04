@@ -48,7 +48,7 @@ class ActionModel():
 
     def update(self, before_feats, after_feats):
         x_s = self.before_scaler.transform(before_feats.reshape(1,-1)).flatten()
-        
+
         y = np.absolute(np.subtract(after_feats, before_feats))
         y_s = self.effect_scaler.transform(y.reshape(1,-1)).flatten()[0:3]
 
@@ -72,8 +72,8 @@ class ActionModel():
         return False
 
     def predict(self, before_feats):
-        x_s = self.before_scaler.transform(before_feats.reshape(1,-1)).flatten()
-        y_predicted = self.nn.predict(x_s.reshape(1,-1)).flatten()
+        x_s = self.before_scaler.transform(before_feats.reshape(1,-1))
+        y_predicted = self.nn.predict(x_s).flatten()
         effect_id = self.effect_som.winner(y_predicted)
         return effect_id, y_predicted
 

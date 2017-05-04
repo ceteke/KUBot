@@ -1,7 +1,6 @@
 import roslib; roslib.load_manifest('kubot_manipulation'); roslib.load_manifest('kubot_gazebo')
 import rospy
 from kubot_manipulation.robot import Robot
-from kubot_gazebo.object_handler import ObjectHandler
 from random import randint
 from kubot_manipulation.MyAction import Push
 import rospy
@@ -19,7 +18,7 @@ from errors import IterationError
 
 class AffordanceCore:
 
-    def __init__(self, object_handler, feature_size = 51, run_id = None, models_path='/home/cem/learning/models/'):
+    def __init__(self, feature_size = 51, run_id = None, models_path='/home/cem/learning/models/'):
         self.robot = Robot()
         if run_id is None:
             self.run_id = self.get_run_id()
@@ -37,7 +36,6 @@ class AffordanceCore:
         self.features_base_path = '/media/cem/ROSDATA/ros_data/features'
 
         self.iteration_num = 0
-        self.object_handler = object_handler
 
         self.models_path = models_path
 
@@ -59,7 +57,7 @@ class AffordanceCore:
             raise IterationError("Waiting feature topic timed out.")
         if before_feats is None:
             raise IterationError("Object out of scope.")
-        if action_model.action.prepare(before_feats,obj.name) == -1:
+        if action_model.action.prepare(before_feats) == -1:
             raise IterationError("No plan found.")
         return before_feats
 
@@ -151,3 +149,6 @@ class AffordanceCore:
     def load_models(self):
         for am in self.action_models:
             am.load()
+
+    def go_initial(self):
+        self.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
