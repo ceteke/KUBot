@@ -6,13 +6,14 @@ import numpy as np
 import Tkinter
 import tkMessageBox
 from kubot_affordance.srv import *
+import threading
 
 class GUI():
     def __init__(self):
         self.object_handler = ObjectHandler()
 
         self.top = Tkinter.Tk()
-        self.B = Tkinter.Button(self.top, text ="Predict Random", command = lambda: self.randomCallback())
+        self.B = Tkinter.Button(self.top, text ="Predict Random", command=self.randomCallback)
         self.B.pack()
 
         self.var = Tkinter.StringVar(self.top)
@@ -22,20 +23,25 @@ class GUI():
         self.option = Tkinter.OptionMenu(self.top, self.var, *self.choices)
         self.option.pack(side='left', padx=10, pady=10)
 
-        self.s_button = Tkinter.Button(self.top, text="Spawn", command=lambda: self.pickObjectCallback(self.var))
+        self.s_button = Tkinter.Button(self.top, text="Spawn", command=self.pickObjectCallback)
         self.s_button.pack(side='left', padx=20, pady=10)
-        self.r_button = Tkinter.Button(self.top, text="Remove", command=lambda: self.removeObjectCallback(self.var))
+        self.r_button = Tkinter.Button(self.top, text="Remove", command=self.removeObjectCallback)
         self.r_button.pack(side='left', padx=20, pady=10)
-        self.g_button = Tkinter.Button(self.top, text="Go!", command=lambda: self.goObjectCallback(self.var))
+        self.g_button = Tkinter.Button(self.top, text="Go!", command=self.goObjectCallback)
         self.g_button.pack(side='left', padx=20, pady=10)
 
         self.status = Tkinter.Label(self.top, text="Hello Everyone")
         self.status.pack(side="bottom")
 
+        self.t = None
+
+        self.labels = {0:"Stay", 1:"Roll"}
+
         self.top.mainloop()
 
-    def prediction(self, obj, is_random=False):
+    def prediction(self, obj, is_random):
         action = 'push'
+
         if is_random:
             obj.set_position(self.object_handler.get_random_object_pose())
             obj.place_on_table()
@@ -46,6 +52,7 @@ class GUI():
         goto_rsp = goto_sp(goto_rq)
         if not goto_rsp.success:
             obj.remove()
+            self.status["text"] = "I can't go there."
             return
         before_feats = goto_rsp.before_feats
 
@@ -57,7 +64,12 @@ class GUI():
         effect_cid = p_rsp.effect_id
         y_predicted = p_rsp.y_predicted
 
-        print effect_cid
+        print "Effect:", effect_cid
+        try:
+            label = self.labels[effect_cid]
+            self.status["text"] = "I think this object will %s" % (label)
+        except KeyError:
+            self.status["text"] = "I don't know this effect in human language."
 
         ex_sp = rospy.ServiceProxy('affordance_node/execute_action', execute_action)
         ex_rq = execute_actionRequest()
@@ -65,6 +77,7 @@ class GUI():
         ex_rsp = ex_sp(ex_rq)
         if not ex_rsp.success:
             obj.remove()
+            self.status["text"] = "I can't %s." % (action)
             return
         after_feats = ex_rsp.after_feats
         y_actual = np.absolute(np.array(after_feats)-np.array(before_feats))
@@ -77,29 +90,37 @@ class GUI():
         err_rsp = err_sp(err_rq)
         err = err_rsp.err
 
-        print err
+        print "Error:", err
 
         obj.remove()
 
+        if err > 0.1:
+            self.status["text"] = "Oh! This is new. I can't wait to learn this after the demo!"
+        else:
+            self.status["text"] = "Come on let me show you my skills.."
+
     def randomCallback(self):
         obj = self.object_handler.pick_random_object()
-        self.prediction(obj, is_random=True)
+        self.t = threading.Thread(target=self.prediction, args=(obj, True))
+        self.t.start()
 
-    def pickObjectCallback(self, var):
-        oid = var.get()
+    def pickObjectCallback(self):
+        oid = self.var.get()
         obj = self.object_handler.get_object(oid)
         obj.set_position(self.object_handler.default_pose)
         obj.place_on_table()
 
-    def removeObjectCallback(self, var):
-        oid = var.get()
+    def removeObjectCallback(self):
+        oid = self.var.get()
         obj = self.object_handler.get_object(oid)
         obj.remove()
 
-    def goObjectCallback(self, var):
-        oid = var.get()
+    def goObjectCallback(self):
+        oid = self.var.get()
         obj = self.object_handler.get_object(oid)
-        self.prediction(obj)
+        self.t = threading.Thread(target=self.prediction, args=(obj, False))
+        self.t.start()
+
 
 def main():
     rospy.init_node('kubot_gui')
