@@ -13,29 +13,32 @@ class GUI():
         self.object_handler = ObjectHandler()
 
         self.top = Tkinter.Tk()
-        self.B = Tkinter.Button(self.top, text ="Predict Random", command=self.randomCallback)
+        self.frame = Tkinter.Frame(self.top)
+        self.frame.pack()
+
+        self.B = Tkinter.Button(self.frame, text ="Predict Random", command=self.randomCallback)
         self.B.pack()
 
         self.var = Tkinter.StringVar(self.top)
         # initial value
         self.var.set('box')
-        self.choices = ['box', 'sphere', 'hcylinder', 'vcylinder', 'duck', 'bunny']
-        self.option = Tkinter.OptionMenu(self.top, self.var, *self.choices)
+        self.choices = ['box', 'sphere', 'hcylinder', 'vcylinder', 'duck']
+        self.option = Tkinter.OptionMenu(self.frame, self.var, *self.choices)
         self.option.pack(side='left', padx=10, pady=10)
 
-        self.s_button = Tkinter.Button(self.top, text="Spawn", command=self.pickObjectCallback)
+        self.s_button = Tkinter.Button(self.frame, text="Spawn", command=self.pickObjectCallback)
         self.s_button.pack(side='left', padx=20, pady=10)
-        self.r_button = Tkinter.Button(self.top, text="Remove", command=self.removeObjectCallback)
+        self.r_button = Tkinter.Button(self.frame, text="Remove", command=self.removeObjectCallback)
         self.r_button.pack(side='left', padx=20, pady=10)
-        self.g_button = Tkinter.Button(self.top, text="Go!", command=self.goObjectCallback)
+        self.g_button = Tkinter.Button(self.frame, text="Go!", command=self.goObjectCallback)
         self.g_button.pack(side='left', padx=20, pady=10)
 
-        self.status = Tkinter.Label(self.top, text="Hello Everyone")
-        self.status.pack(side="bottom")
+        self.status = Tkinter.Label(self.top, text="Hello Everyone", font=("Helvetica", 16))
+        self.status.pack(side="bottom", anchor="center")
 
         self.t = None
 
-        self.labels = {0:"Stay", 1:"Roll"}
+        self.labels = {0:"Stay", 1:"Roll", 43:"Stay", 5:"Drop", 9:"Drop", 11:"Drop"}
 
         self.top.mainloop()
 
