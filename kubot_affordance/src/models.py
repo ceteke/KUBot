@@ -46,13 +46,11 @@ class ActionModel():
         self.nn.add(Dense(3, activation='relu'))
         self.nn.compile(loss='mean_absolute_error', optimizer='adagrad')
 
-    def update(self, before_feats, after_feats,is_gone):
+    def update(self, before_feats, after_feats):
         x_s = self.before_scaler.transform(before_feats.reshape(1,-1)).flatten()
-        if not is_gone:
-            y = np.absolute(np.subtract(after_feats, before_feats))
-            y_s = self.effect_scaler.transform(y.reshape(1,-1)).flatten()[0:3]
-        else:
-            y_s = self.effect_scaler.transform(before_feats.reshape(1,-1)).flatten()[0:3]
+        
+        y = np.absolute(np.subtract(after_feats, before_feats))
+        y_s = self.effect_scaler.transform(y.reshape(1,-1)).flatten()[0:3]
 
         y_predicted = self.nn.predict(x_s.reshape(1,-1))
 

@@ -14,7 +14,8 @@ def main():
             obj = object_handler.pick_random_object()
             action_model = affordance_core.get_random_action_model()
             before_feats = affordance_core.prepare_action_random(obj, action_model)
-            affordance_core.execute_action(before_feats,action_model, obj, True, False)
+            after_feats = affordance_core.execute_action(action_model)
+            affordance_core.save(before_feats, after_feats, obj, action_model, is_gone)
         except IterationError as e:
             rospy.loginfo(e.message)
             continue

@@ -12,6 +12,7 @@ def main():
     affordance_core = AffordanceCore(object_handler)
     #affordance_core.load_models()
     affordance_core.init_models()
+    affordance_core.load_scalers()
     try:
         while True:
             affordance_core.robot.arm.ang_cmd([2.0714,-1.5,2.2,-0.9666,2.905,1.45])
@@ -23,7 +24,9 @@ def main():
                 is_first = True
                 while True:
                     before_feats = affordance_core.prepare_action(obj, action_model, obj_pose, is_first)
-                    is_learned, after_feats = affordance_core.execute_action(before_feats,action_model, obj, True, True)
+                    after_feats = affordance_core.execute_action(action_model)
+                    is_learned = action_model.update(before_feats, after_feats)
+                    affordance_core.save(before_feats, after_feats, obj, action_model)
                     affordance_core.save_models()
                     if is_learned:
                         rospy.loginfo("=================Boring=============")

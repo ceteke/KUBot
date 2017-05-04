@@ -11,13 +11,13 @@ class ObjectHandler:
         self.sphere = Sphere()
         self.hcylinder = Cylinder('h')
         self.vcylinder = Cylinder('v')
-        self.duck = Duck()
-        self.bunny = Bunny()
+        #self.duck = Duck()
+        #self.bunny = Bunny()
         self.default_pose = Pose()
         self.default_pose.position.x = 0.0
         self.default_pose.position.y = 0.0
         self.default_pose.position.z = 0.8
-        self.objects = [self.box, self.sphere, self.vcylinder, self.hcylinder, self.duck, self.bunny]
+        self.objects = [self.box, self.sphere, self.vcylinder, self.hcylinder]
 
     def pick_random_object(self):
         i = randint(0,len(self.objects)-1)
