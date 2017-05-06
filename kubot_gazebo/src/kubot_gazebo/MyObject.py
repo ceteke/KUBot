@@ -3,7 +3,7 @@ import rospkg
 from geometry_msgs.msg import Pose, Twist, Quaternion
 
 class MyObject(object):
-    def __init__(self,name,urdf_file,orientation=None,is_sdf=False):
+    def __init__(self,name,urdf_file,should_spawn=True,orientation=None,is_sdf=False):
         self.name = name
         self.gazebo_interface = GazeboInterface()
         self.rospack = rospkg.RosPack()
@@ -19,12 +19,13 @@ class MyObject(object):
         self.is_sdf = is_sdf
         if orientation is not None:
             self.invisible_pose.orientation = self.orientation
-        if not is_sdf:
-            self.gazebo_interface.spawn_object(self.object_path+self.urdf_file,
-                                            self.name, self.invisible_pose,self.is_sdf)
-        else:
-            self.gazebo_interface.spawn_object(self.model_path,
-                                            self.name, self.invisible_pose,self.is_sdf)
+        if should_spawn:
+            if not is_sdf:
+                self.gazebo_interface.spawn_object(self.object_path+self.urdf_file,
+                                                self.name, self.invisible_pose,self.is_sdf)
+            else:
+                self.gazebo_interface.spawn_object(self.model_path,
+                                                self.name, self.invisible_pose,self.is_sdf)
 
     def place_on_table(self):
         return self.gazebo_interface.set_object_pose(self.name,self.pose,twist=self.twist)
@@ -51,7 +52,7 @@ class Box(MyObject):
 
 class Duck(MyObject):
     def __init__(self):
-        MyObject.__init__(self,'duck',None, is_sdf=True)
+        MyObject.__init__(self,'duck',None, should_spawn=False, is_sdf=True)
 
 class Bunny(MyObject):
     def __init__(self):
