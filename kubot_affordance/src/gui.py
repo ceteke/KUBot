@@ -38,7 +38,24 @@ class GUI():
 
         self.t = None
 
-        self.labels = {0:"Stay", 1:"Roll", 43:"Stay", 5:"Drop", 9:"Drop", 11:"Drop"}
+        self.labels = {0: "Stay",
+                       1: "Roll",
+                       3: "Drop",
+                       4: "Drop",
+                       5: "Drop",
+                       6: "Roll",
+                       9: "Drop",
+                       10: "Roll",
+                       11: "Drop",
+                       12: "Drop",
+                       14: "Drop",
+                       17: "Drop",
+                       25:" Drop",
+                       28: "Drop",
+                       29: "Drop",
+                       32: "Roll",
+                       39: "Drop",
+                       43: "Roll"}
 
         self.top.mainloop()
 
